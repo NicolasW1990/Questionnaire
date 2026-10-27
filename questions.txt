@@ -1,0 +1,134 @@
+1. Karine a reçu un e-mail de la banque. La page de connexion est identique à l’originale, mais le gestionnaire ne propose pas de remplir ses identifiants. Que dites-vous à Karine ?
+
+A. « Tape tes identifiants à la main, ça marche sûrement. »
+→ ❌ Karine saisit ses identifiants sur le faux site. Le lendemain, le compte de l’entreprise est vidé.
+B. « Ne clique pas : c’est probablement un faux site. Va directement sur le site officiel de la banque. » ✅
+→ 😊 Karine ferme la page et se connecte via le site officiel. La banque confirme que l’e-mail était une arnaque et la comptabilité reste intacte.
+C. « Transfère l’e-mail à toute l’équipe pour savoir ce qu’ils en pensent. »
+→ ❌ Trois collègues cliquent sur le lien par curiosité. L’un d’eux saisit son mot de passe sur le faux site.
+
+2. Henri a collé sur son écran un post-it avec le mot de passe de l’ordinateur d’accueil. Que dites-vous à Henri ?
+
+A. « Garde-le, c’est pratique et personne ne regarde. »
+→ ❌ Un visiteur prend le post-it en photo. Le soir même, quelqu’un se connecte au poste d’accueil.
+B. « Cache-le sous ton clavier, ce sera plus discret. »
+→ ❌ Une personne du nettoyage le retrouve et le laisse traîner. Le mot de passe circule dans le bâtiment.
+C. « Enlève-le et enregistre ce mot de passe dans le gestionnaire. » ✅
+→ 😊 Le poste d’accueil n’affiche plus rien d’exposé. Henri retrouve son mot de passe en un clic, et la direction félicite l’équipe pour l’ordre du bureau.
+
+3. Karine dit : « Pas besoin de gestionnaire, j’enregistre mes mots de passe dans Chrome, c’est gratuit et déjà installé. » Que dites-vous à Karine ?
+
+A. « Un gestionnaire dédié offre plus de fonctions et résiste mieux aux logiciels de vol de données. Utilise Proton Pass et désactive l’enregistrement de Chrome. » ✅
+→ 😊 Karine migre ses comptes et profite de l’audit de sécurité. Un virus voleur de données passe sur son poste quelques semaines plus tard, sans rien trouver d’exploitable.
+B. « Parfait, garde les deux : plus il y a d’endroits où ils sont enregistrés, mieux c’est. »
+→ ❌ Un logiciel voleur d’identifiants récupère les mots de passe restés dans Chrome. Karine perd l’accès à son compte de paiement.
+C. « Chrome est plus sûr qu’un gestionnaire dédié, car il est fabriqué par Google. »
+→ ❌ Karine reste sur Chrome. Un infostealer vide tout son navigateur, et elle doit changer des dizaines de mots de passe dans l’urgence.
+
+4. Arthur apprend qu’un site de commande a subi une fuite de données. Il utilise le même mot de passe sur sa messagerie professionnelle. Que dites-vous à Arthur ?
+
+A. « Pas de panique, attends de voir si quelqu’un se connecte. »
+→ ❌ Un attaquant teste le mot de passe sur sa messagerie et s’y connecte dès la nuit suivante.
+B. « Change seulement le mot de passe du site piraté. »
+→ ❌ Le site est sécurisé, mais la messagerie garde le même mot de passe. Elle est piratée à son tour.
+C. « Change tout de suite le mot de passe partout où tu l’as utilisé, en commençant par la messagerie, avec des mots de passe uniques. » ✅
+→ 😊 Les attaquants essaient le mot de passe volé sur plusieurs services et échouent partout. Arthur n’a rien perdu.
+
+5. Marion veut choisir comme mot de passe principal : le prénom de sa fille + sa date de naissance + « ! ». Que dites-vous à Marion ?
+
+A. « Choisis plutôt une phrase de passe de plusieurs mots sans lien entre eux. » ✅
+→ 😊 Marion choisit une phrase de cinq mots au hasard. Elle s’en souvient facilement et personne ne la devine.
+B. « C’est parfait, c’est facile à retenir. »
+→ ❌ Son profil en ligne affiche le prénom de sa fille et sa date de naissance. Un attaquant devine le mot de passe en quelques essais et ouvre tout le coffre.
+C. « Ajoute juste un chiffre à la fin. »
+→ ❌ Le mot de passe reste prévisible. Un attaquant le trouve grâce aux variantes classiques.
+
+6. Karine a perdu son téléphone, qui contient Proton Pass et son application TOTP. Que dites-vous à Karine ?
+
+A. « Attends quelques jours, il sera sûrement retrouvé. »
+→ ❌ Le téléphone n’est jamais retrouvé. Pendant ce temps, quelqu’un essaie d’accéder à ses comptes.
+B. « Verrouille tout de suite l’accès, change les mots de passe importants et utilise tes codes de secours. » ✅
+→ 😊 Karine bloque la session et récupère ses accès avec ses codes de secours. Quand quelqu’un tente de se connecter, il est bloqué.
+C. « Rachète le même téléphone, tout reviendra automatiquement. »
+→ ❌ Le nouveau téléphone ne contient pas ses codes TOTP. Elle est bloquée hors de plusieurs comptes pendant des jours.
+
+7. James veut migrer ses comptes vers le gestionnaire. Il a son e-mail pro, son e-banking, un forum de voile et une carte de fidélité de librairie. Que dites-vous à James ?
+
+A. « Commence par le forum de voile, c’est le plus simple. »
+→ ❌ Le forum est sécurisé, mais l’e-mail pro garde son vieux mot de passe. Il est piraté deux semaines plus tard.
+B. « Commence par l’e-mail et l’e-banking, puis les autres. » ✅
+→ 😊 James protège d’abord ce qui compte vraiment. Une tentative de réinitialisation sur son e-mail échoue grâce au mot de passe généré.
+C. « Fais-les dans l’ordre alphabétique. »
+→ ❌ L’e-banking passe après une dizaine de comptes sans importance. Il reste exposé des semaines.
+
+8. Henri pense que son compte sur un site de vente en ligne n’est pas important, mais sa carte bancaire y est enregistrée. Que dites-vous à Henri ?
+
+A. « Pas de souci, c’est un petit site. »
+→ ❌ Le site est piraté. Des achats frauduleux apparaissent sur la carte d’Henri.
+B. « Il est important, parce qu’une carte bancaire y est enregistrée : protège-le en priorité. » ✅
+→ 😊 Henri active la 2FA et génère un mot de passe unique. Quand une tentative de connexion suspecte arrive, elle échoue.
+C. « Supprime ton gestionnaire, il ne sert à rien ici. »
+→ ❌ Henri retourne à ses vieilles habitudes et réutilise un mot de passe faible. Le compte est piraté peu après.
+
+9. Arthur a importé tous ses anciens mots de passe dans Proton Pass sans en changer aucun et pense avoir terminé. Que dites-vous à Arthur ?
+
+A. « C’est bon, tu es complètement protégé maintenant. »
+→ ❌ Ses vieux mots de passe faibles sont toujours là. L’audit de sécurité les signale en rouge, trop tard : l’un d’eux est déjà compromis.
+B. « Garde aussi ton fichier Excel au cas où. »
+→ ❌ Le fichier Excel traîne sur son poste. Un collègue l’ouvre par hasard et voit tous ses mots de passe.
+C. « Remplace-les peu à peu par des mots de passe générés, en commençant par les comptes importants. » ✅
+→ 😊 Après quelques semaines, ses comptes importants sont protégés. L’audit affiche enfin tout en vert.
+
+10. Marion laisse son coffre ouvert sur le poste partagé de la logistique en partant en réunion. Que dites-vous à Marion ?
+
+A. « Verrouille ton coffre et ta session avant de quitter le poste. » ✅
+→ 😊 Marion verrouille en un clic. Un collègue utilise le poste pendant son absence sans rien pouvoir voir.
+B. « Laisse-le ouvert, tu reviens dans dix minutes. »
+→ ❌ Un collègue de passage ouvre ses comptes RH. Des données du personnel sont consultées sans qu’elle le sache.
+C. « Ferme simplement l’écran, ça suffit. »
+→ ❌ Le coffre reste déverrouillé derrière l’écran noir. Quelqu’un rallume l’écran et accède à tout.
+
+11. Henri s’est inscrit à un salon professionnel avec son adresse de travail et reçoit des dizaines de publicités. Que dites-vous à Henri ?
+
+A. « Réponds à chaque e-mail pour te désinscrire. »
+→ ❌ Certains expéditeurs voient que l’adresse est active. Le nombre de spams augmente.
+B. « La prochaine fois, utilise un alias e-mail Proton Pass, que tu pourras désactiver. » ✅
+→ 😊 Henri s’inscrit avec un alias. Quand le spam arrive, il désactive l’alias en un clic et sa vraie adresse reste tranquille.
+C. « Change de travail pour changer d’adresse. »
+→ ❌ Henri perd du temps et le problème se reproduit à la prochaine inscription.
+
+12. James s’inquiète : Karine quitte l’entreprise et elle seule connaît certains accès de la comptabilité. Que dites-vous à James ?
+
+A. « Elle nous les enverra par e-mail avant de partir. »
+→ ❌ Les mots de passe traînent dans les boîtes mail. Ils restent lisibles après son départ.
+B. « Ce n’est pas grave, on les devinera. »
+→ ❌ Impossible de retrouver les accès. Le paiement des fournisseurs est bloqué pendant une semaine.
+C. « Il faut prévoir un administrateur de secours et une procédure de récupération des accès. » ✅
+→ 😊 Le jour du départ de Karine, l’administrateur reprend les accès en quelques minutes. L’activité continue sans interruption.
+
+13. Arthur a laissé un export de son coffre en clair (CSV) dans le dossier Téléchargements. Que dites-vous à Arthur ?
+
+A. « Supprime-le tout de suite, corbeille comprise, et fais plutôt un export chiffré. » ✅
+→ 😊 Le fichier en clair disparaît. Quand un virus fouille le dossier Téléchargements, il ne trouve rien. Arthur garde un export chiffré en lieu sûr.
+B. « Renomme-le pour que personne ne le trouve. »
+→ ❌ Le fichier est toujours lisible. Un logiciel malveillant le repère et l’envoie à un pirate.
+C. « Garde-le, c’est ta sauvegarde. »
+→ ❌ Le poste d’Arthur est volé. Tous ses mots de passe sont lisibles en clair.
+
+14. Marion a oublié son mot de passe principal Proton Pass et demande d’appeler le support pour le réinitialiser. Que dites-vous à Marion ?
+
+A. « Le support peut le retrouver sans problème. »
+→ ❌ Marion perd une journée à attendre. Le support lui confirme qu’il ne peut rien faire, et elle n’a pas préparé de solution de secours.
+B. « Le support ne peut pas : il ne le connaît pas. Utilise ta clé de récupération. » ✅
+→ 😊 Marion retrouve son kit d’urgence rangé dans son classeur. En dix minutes, elle récupère l’accès à son coffre.
+C. « Essaye simplement le mot de passe de ton e-mail. »
+→ ❌ Elle essaie plusieurs combinaisons et verrouille temporairement son compte. Pire, elle révèle son vrai mot de passe e-mail à l’écran devant témoin.
+
+15. James hésite entre SMS, application TOTP et clé de sécurité physique pour la double authentification de son e-mail pro. Que dites-vous à James ?
+
+A. « Le SMS, c’est le plus sûr de tous. »
+→ ❌ Un attaquant détourne son numéro (SIM swapping) et reçoit les codes. Il accède à son e-mail pro.
+B. « Pas besoin de double authentification, ton mot de passe suffit. »
+→ ❌ Son mot de passe fuite lors d’un hameçonnage. Sans seconde preuve d’identité, l’attaquant entre directement.
+C. « Privilégie une clé de sécurité ou une application TOTP : le SMS peut être détourné. » ✅
+→ 😊 James active une application TOTP. Quand un pirate découvre son mot de passe, il reste bloqué sans le code.

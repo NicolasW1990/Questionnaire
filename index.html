@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz – Gestionnaire de mots de passe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    Toutes les pages du quiz s'affichent dans cette seule balise.
+    C'est script.js qui la remplit (accueil, questions, conséquences, résultat).
+  -->
+  <main id="app" class="carte"></main>
+
+  <!-- Ordre important : d'abord les données, puis la logique -->
+  <script src="questions.js"></script>
+  <script src="explications.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

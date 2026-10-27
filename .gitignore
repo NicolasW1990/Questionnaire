@@ -1,0 +1,9 @@
+# Dossier de configuration de WebStorm
+.idea/
+
+# Dépendances Node (si tu en ajoutes plus tard)
+node_modules/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
