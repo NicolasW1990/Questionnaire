@@ -49,6 +49,25 @@ h1, h2 { margin-top: 0; }
   height: 100%;
   object-fit: cover;   /* l'image remplit le cadre sans être déformée */
 }
+/* Quand l'image est chargée, le cadre s'adapte à SA forme (carrée, paysage ou portrait) :
+   plus de découpe, l'image est affichée en entier et centrée, sans dépasser 60 % de la hauteur de l'écran */
+.image-cadre.image-chargee {
+  display: block;
+  aspect-ratio: auto;
+  background: none;
+  overflow: visible;
+  text-align: center;
+}
+.image-cadre.image-chargee img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 60vh;
+  margin: 0 auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
 .image-vide {            /* texte affiché si l'image n'existe pas encore */
   color: rgba(255, 255, 255, 0.75);
   font-size: 0.9rem;

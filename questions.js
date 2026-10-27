@@ -33,7 +33,7 @@ const QUESTIONS = [
   },
   {
     "id": "q02",
-    "texte": "Henri a collé sur son écran un post-it avec le mot de passe de l’ordinateur d’accueil. Que dites-vous à Henri ?",
+    "texte": "James a collé sur son écran un post-it avec le mot de passe de l’ordinateur d’accueil. Que dites-vous à James ?",
     "reponses": [
       {
         "id": "a",
@@ -51,7 +51,7 @@ const QUESTIONS = [
         "id": "c",
         "texte": "« Enlève-le et enregistre ce mot de passe dans le gestionnaire. »",
         "correcte": true,
-        "consequence": "Le poste d’accueil n’affiche plus rien d’exposé. Henri retrouve son mot de passe en un clic, et la direction félicite l’équipe pour l’ordre du bureau."
+        "consequence": "Le poste d’accueil n’affiche plus rien d’exposé. James retrouve son mot de passe en un clic, et la direction félicite l’équipe pour l’ordre du bureau."
       }
     ]
   },

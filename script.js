@@ -41,6 +41,9 @@ function creerImage(nomFichier, texteAlt) {
   const img = document.createElement("img");
   img.src = "images/" + nomFichier + ".webp";
   img.alt = texteAlt;
+  img.addEventListener("load", function () {
+    cadre.classList.add("image-chargee");   // le cadre prend la forme réelle de l'image
+  });
   img.addEventListener("error", function () {
     cadre.textContent = "";
     cadre.appendChild(el("span", "image-vide", "Image à venir : images/" + nomFichier + ".webp (1280 × 720 px)"));
