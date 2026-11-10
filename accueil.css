@@ -1,0 +1,43 @@
+/* =====================================================
+   Styles propres à accueil.html et autotest.html.
+   Les couleurs viennent de style.css (variables dans :root),
+   on ne les recopie pas ici.
+   ===================================================== */
+
+/* Carte plus étroite que celle du quiz, avec le texte centré */
+.accueil {
+  max-width: 640px;
+  text-align: center;
+}
+
+/* Zone des boutons : l'un sous l'autre sur mobile */
+.choix {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* Un lien <a> doit ressembler au bouton existant (.bouton) */
+.choix .bouton,
+.accueil > .bouton {
+  display: block;          /* occupe toute la largeur disponible */
+  margin-top: 0;           /* l'espacement est géré par "gap" */
+  text-align: center;
+  text-decoration: none;   /* pas de soulignement */
+}
+
+/* Bouton seul (page autotest) : on garde un peu d'air au-dessus */
+.accueil > .bouton {
+  margin-top: 24px;
+}
+
+/* Dès 600 px de large : les boutons passent côte à côte */
+@media (min-width: 600px) {
+  .choix {
+    flex-direction: row;
+  }
+  .choix .bouton {
+    flex: 1;               /* les deux boutons ont la même largeur */
+  }
+}

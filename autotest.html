@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto-test</title>
+  <!-- style.css : couleurs, .carte et .bouton communs à tout le site -->
+  <link rel="stylesheet" href="style.css">
+  <!-- accueil.css : réutilisé pour la carte centrée de l'étape 2 et de l'écran étroit -->
+  <link rel="stylesheet" href="accueil.css">
+  <!-- autotest.css : tout ce qui est propre à cette page (faux bureau, faux navigateur) -->
+  <link rel="stylesheet" href="autotest.css">
+</head>
+<body class="page-autotest">
+
+  <!-- ===================================================== -->
+  <!--  ÉTAPE 1 : le faux bureau d'ordinateur                -->
+  <!-- ===================================================== -->
+  <section class="etape bureau" id="etape-1" data-etape="1">
+
+    <!-- Petit lien discret pour revenir à l'accueil (en haut à gauche) -->
+    <a class="lien-accueil-bureau" href="accueil.html">← Accueil</a>
+
+    <!-- Colonne de gauche (≈ 22 % de la largeur) : objets posés sur le bureau -->
+    <div class="colonne">
+      <!-- TODO : contenu à définir (le téléphone et le calepin sont décoratifs pour l'instant) -->
+
+      <!-- Faux smartphone type iPhone -->
+      <div class="iphone" aria-hidden="true">
+        <div class="iphone-ecran">
+          <div class="iphone-encoche"></div>
+          <div class="iphone-heure">09:41</div>
+          <div class="iphone-date">mardi 12 mai</div>
+          <div class="iphone-apps">
+            <span class="app g-bleu"></span>
+            <span class="app g-rose"></span>
+            <span class="app g-vert"></span>
+            <span class="app g-violet"></span>
+            <span class="app g-violet"></span>
+            <span class="app g-bleu"></span>
+            <span class="app g-rose"></span>
+            <span class="app g-vert"></span>
+          </div>
+          <div class="iphone-barre"></div>
+        </div>
+      </div>
+
+      <!-- Faux calepin (papier à lignes, légèrement penché) -->
+      <div class="calepin" aria-hidden="true">
+        <span class="calepin-titre">Notes</span>
+      </div>
+    </div>
+
+    <!-- Fenêtre de navigateur : remplit le reste de l'écran -->
+    <div class="fenetre">
+
+      <!-- Barre de titre : 3 pastilles + onglet -->
+      <div class="fenetre-titre" aria-hidden="true">
+        <span class="pastille rouge"></span>
+        <span class="pastille orange"></span>
+        <span class="pastille vert"></span>
+        <span class="onglet">SuiteSécurité – Accueil</span>
+      </div>
+
+      <!-- Barre d'adresse : cadenas + adresse -->
+      <div class="fenetre-adresse" aria-hidden="true">
+        <span class="adresse">
+          <svg viewBox="0 0 24 24" class="cadenas"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          https://suite-securite.example
+        </span>
+      </div>
+
+      <!-- Zone de la page web simulée -->
+      <div class="page">
+
+        <!-- Bloc utilisateur (coin supérieur droit de toute la zone) -->
+        <div class="utilisateur" aria-hidden="true">
+          <div class="utilisateur-infos">
+            <strong>Alex Exemple</strong>
+            <small>alex@exemple.ch</small>
+          </div>
+          <span class="utilisateur-initiale">A</span>
+          <span class="bascule"></span>
+        </div>
+
+        <!-- Conteneur au ratio 945 / 841 : tout est dimensionné en cqw dedans -->
+        <div class="contenu">
+
+          <!-- 1 et 2 : titre et sous-titre -->
+          <div class="intro">
+            <h1>Bienvenue</h1>
+            <p>La confidentialité et la sécurité commencent ici</p>
+          </div>
+
+          <!-- 3 : grille de 10 services, 2 lignes de 5 -->
+          <!-- Ligne 1 -->
+          <div class="rangee rangee-1">
+            <button type="button" class="service" data-service="courriel">
+              <span class="carre"><span class="picto g-bleu"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span></span>
+              <span class="nom">Courriel</span>
+            </button>
+            <button type="button" class="service" data-service="agenda">
+              <span class="carre"><span class="picto g-rose"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span></span>
+              <span class="nom">Agenda</span>
+            </button>
+            <button type="button" class="service" data-service="motsdepasse">
+              <span class="carre"><span class="picto g-violet"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span></span>
+              <span class="nom">Mots de passe</span>
+            </button>
+            <button type="button" class="service" data-service="vpn">
+              <span class="carre"><span class="picto g-vert"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></span></span>
+              <span class="nom">VPN</span>
+            </button>
+            <button type="button" class="service" data-service="assistant">
+              <span class="carre">
+                <span class="picto g-rose"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 10h6"/></svg></span>
+                <span class="badge">Nouveau</span>
+              </span>
+              <span class="nom">Assistant</span>
+            </button>
+          </div>
+
+          <!-- Ligne 2 -->
+          <div class="rangee rangee-2">
+            <button type="button" class="service" data-service="fichiers">
+              <span class="carre"><span class="picto g-bleu"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span></span>
+              <span class="nom">Fichiers</span>
+            </button>
+            <button type="button" class="service" data-service="documents">
+              <span class="carre"><span class="picto g-violet"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></svg></span></span>
+              <span class="nom">Documents</span>
+            </button>
+            <button type="button" class="service" data-service="tableur">
+              <span class="carre"><span class="picto g-vert"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/></svg></span></span>
+              <span class="nom">Tableur</span>
+            </button>
+            <button type="button" class="service" data-service="visio">
+              <span class="carre">
+                <span class="picto g-rose"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg></span>
+                <span class="badge">Nouveau</span>
+              </span>
+              <span class="nom">Visio</span>
+            </button>
+            <button type="button" class="service" data-service="portefeuille">
+              <span class="carre"><span class="picto g-bleu"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18"/><circle cx="16.5" cy="15" r="1"/></svg></span></span>
+              <span class="nom">Portefeuille</span>
+            </button>
+          </div>
+
+          <!-- 4 : grand espace vide (rien à mettre ici) -->
+
+          <!-- 5 : bouton Paramètres, tout en bas -->
+          <button type="button" class="parametres" id="btn-parametres">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke-dasharray="2.6 2.6" stroke-width="3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2.5"/></svg>
+            Paramètres
+          </button>
+        </div>
+
+        <!-- Bulle de message humoristique (centrée dans la zone de page) -->
+        <div class="toast-zone">
+          <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre des tâches (rien de cliquable) -->
+    <div class="taskbar" aria-hidden="true">
+      <div class="taskbar-gauche">
+        <span class="tache actif"></span>
+        <span class="tache"></span>
+        <span class="tache"></span>
+        <span class="tache"></span>
+        <span class="tache"></span>
+      </div>
+      <span class="taskbar-heure">09:41</span>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!--  ÉTAPE 2 : provisoire                                 -->
+  <!-- ===================================================== -->
+  <section class="etape etape-carte" id="etape-2" data-etape="2" hidden>
+    <div class="carte accueil">
+      <h1>Auto-test</h1>
+      <p>Suite de l'auto-test : en construction.</p>
+      <button type="button" class="bouton" id="btn-retour-bureau">Retour au bureau</button>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!--  Message affiché sur les écrans de moins de 900 px    -->
+  <!-- ===================================================== -->
+  <section class="ecran-etroit">
+    <div class="carte accueil">
+      <h1>Auto-test</h1>
+      <p>Cette étape est prévue pour un écran d'ordinateur.</p>
+      <a class="bouton" href="accueil.html">Retour à l'accueil</a>
+    </div>
+  </section>
+
+  <script src="autotest.js"></script>
+</body>
+</html>
