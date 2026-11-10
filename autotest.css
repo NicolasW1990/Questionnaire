@@ -332,18 +332,19 @@
 }
 .carre {
   position: relative;                  /* pour placer le badge « Nouveau » */
-  width: 10cqw;
-  height: 10cqw;
+  width: 7.5cqw;                       /* 10 cqw × 0,75 */
+  height: 7.5cqw;
+  margin-top: 1.25cqw;                 /* (10 - 7,5) / 2 : le centre de l'icône ne bouge pas */
   display: grid;
   place-items: center;
   background: #fff;
-  border-radius: 2.8cqw;
-  box-shadow: 0 1cqw 3cqw rgba(109, 63, 214, 0.18);   /* ombre douce teintée de violet */
+  border-radius: 2.1cqw;
+  box-shadow: 0 0.75cqw 2.25cqw rgba(109, 63, 214, 0.18);   /* ombre douce teintée de violet */
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .service:hover .carre {
-  transform: translateY(-0.6cqw);
-  box-shadow: 0 1.6cqw 4cqw rgba(109, 63, 214, 0.28);
+  transform: translateY(-0.45cqw);
+  box-shadow: 0 1.2cqw 3cqw rgba(109, 63, 214, 0.28);
 }
 .service:focus-visible,
 .parametres:focus-visible { outline: 2px solid #6d3fd6; outline-offset: 4px; border-radius: 8px; }
@@ -371,10 +372,10 @@
 /* Badge « Nouveau » sur l'angle supérieur droit, qui dépasse un peu */
 .badge {
   position: absolute;
-  top: -1.4cqw;
-  right: -3.2cqw;
-  padding: 0.3cqw 1.4cqw;
-  font-size: max(1.7cqw, 8px);
+  top: -1.05cqw;
+  right: -2.4cqw;
+  padding: 0.225cqw 1.05cqw;
+  font-size: max(1.275cqw, 6px);
   font-weight: 800;
   color: #2a1d55;
   background: #e5dcff;
