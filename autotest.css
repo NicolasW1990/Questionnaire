@@ -1,0 +1,506 @@
+/* =====================================================
+   autotest.css : styles propres à la page autotest.html
+   (faux bureau d'ordinateur + faux navigateur).
+   Les couleurs du site (variables dans style.css) ne servent
+   que pour l'étape 2 : la page web simulée a son propre style
+   clair « lavande », c'est voulu.
+   ===================================================== */
+
+/* ---------- Réglages généraux de la page ---------- */
+/* Le bureau occupe tout l'écran, sans défilement */
+.page-autotest {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Un élément avec l'attribut "hidden" doit vraiment disparaître,
+   même si on lui a donné un "display" plus bas */
+.etape[hidden],
+.toast[hidden] { display: none !important; }
+
+/* Couleurs de dégradé réutilisées par les pictogrammes */
+.g-violet { background: linear-gradient(135deg, #8b5cf6, #5b3fd1); }
+.g-bleu   { background: linear-gradient(135deg, #4aa3ff, #3a5fe0); }
+.g-rose   { background: linear-gradient(135deg, #ff7eb6, #d94fa0); }
+.g-vert   { background: linear-gradient(135deg, #4fd1a5, #1f9d6e); }
+
+/* =====================================================
+   ÉTAPE 1 : LE BUREAU
+   ===================================================== */
+.bureau {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 28% 1fr;     /* colonne de gauche ≈ 28 % (élargie pour le grand calepin) */
+  grid-template-rows: 1fr 44px;       /* bureau + barre des tâches */
+  /* Dégradé bleu/violet sobre */
+  background: linear-gradient(135deg, #1f2c6e 0%, #3b3a8c 50%, #5a3a94 100%);
+}
+
+/* Lien « ← Accueil » discret, en haut à gauche, au-dessus du bureau */
+.lien-accueil-bureau {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  z-index: 20;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.lien-accueil-bureau:hover { color: #fff; text-decoration: underline; }
+
+/* ---------- Colonne de gauche (objets posés en bas) ---------- */
+.colonne {
+  container-type: inline-size;        /* permet d'utiliser cqw pour les tailles */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;          /* tout est en bas, au-dessus de la barre des tâches */
+  align-items: center;
+  gap: 20px;
+  padding: 0 6px 20px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* --- Faux iPhone --- */
+.iphone {
+  container-type: inline-size;        /* ses éléments se dimensionnent d'après sa propre largeur */
+  /* Taille inchangée : l'ancienne colonne faisait 22 % de large (moins 24 px de marges) */
+  width: min(calc((22vw - 24px) * 0.48), 22vh);
+  aspect-ratio: 9 / 18.5;
+  flex: none;
+  background: #0a0a0f;                /* cadre noir */
+  border-radius: 14% / 7%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+.iphone-ecran {
+  position: absolute;
+  inset: 3%;
+  border-radius: 12% / 6%;
+  background: linear-gradient(160deg, #1d2150, #14152e);
+  color: #fff;
+  overflow: hidden;
+  text-align: center;
+}
+.iphone-encoche {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36%;
+  height: 4.5%;
+  background: #000;
+  border-radius: 99px;
+}
+.iphone-heure { margin-top: 24cqw; font-size: 17cqw; font-weight: 300; }
+.iphone-date  { font-size: 6cqw; opacity: 0.8; }
+.iphone-apps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5cqw;
+  padding: 0 8cqw;
+  margin-top: 14cqw;
+}
+.app { aspect-ratio: 1; border-radius: 28%; }
+.iphone-barre {                        /* petite barre en bas de l'écran */
+  position: absolute;
+  bottom: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 35%;
+  height: 1.2%;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 99px;
+}
+
+/* --- Faux calepin --- */
+.calepin {
+  container-type: inline-size;
+  position: relative;
+  /* Environ le double de l'ancienne taille, limité à la largeur de la colonne pour ne rien couper */
+  width: min(98cqw, 60vh);
+  aspect-ratio: 5 / 4;
+  flex: none;
+  transform: rotate(-2.5deg);          /* léger angle */
+  /* Lignes de cahier */
+  background: repeating-linear-gradient(
+    #fffdf2 0, #fffdf2 17px,
+    #c9d6ee 17px, #c9d6ee 18px
+  );
+  background-position: 0 28cqw;
+  border-radius: 3px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+/* Trait de marge rouge */
+.calepin::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 12cqw;
+  width: 1px;
+  background: rgba(214, 90, 90, 0.6);
+}
+/* Bande du haut (là où le papier est relié) */
+.calepin::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 22cqw;
+  background: #f3e7b4;
+  border-radius: 3px 3px 0 0;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+.calepin-titre {
+  position: absolute;
+  top: 5cqw; left: 16cqw;
+  z-index: 1;
+  font: italic 8cqw Georgia, serif;
+  color: #5b4a1a;
+}
+
+/* ---------- Fenêtre de navigateur ---------- */
+.fenetre {
+  margin: 44px 16px 12px 0;            /* 44 px en haut : laisse la place au lien « ← Accueil » */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Barre de titre */
+.fenetre-titre {
+  flex: none;
+  height: 38px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 14px;
+  background: #d9d6e4;
+}
+.pastille {
+  width: 12px; height: 12px;
+  align-self: center;
+  border-radius: 50%;
+}
+.pastille.rouge  { background: #ff5f57; }
+.pastille.orange { background: #febc2e; }
+.pastille.vert   { background: #28c840; }
+.onglet {
+  margin-left: 14px;
+  padding: 8px 18px;
+  font-size: 12px;
+  color: #3a3550;
+  background: #f4f2fa;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Barre d'adresse */
+.fenetre-adresse {
+  flex: none;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  background: #f4f2fa;
+  border-bottom: 1px solid #e2def0;
+}
+.adresse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  font-size: 12px;
+  color: #444;
+  background: #fff;
+  border-radius: 99px;
+}
+.cadenas {
+  width: 13px; height: 13px;
+  fill: none;
+  stroke: #2e8b57;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- La page web simulée ---------- */
+.page {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  /* Dégradé presque blanc en haut, lavande clair en bas (remplit toute la zone) */
+  background: linear-gradient(180deg, #fdfcff 0%, #f6f3ff 45%, #e5ddfa 100%);
+  color: #14121f;
+}
+
+/* Bloc utilisateur : coin supérieur droit de toute la zone de page */
+.utilisateur {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.utilisateur-infos { display: flex; flex-direction: column; text-align: right; line-height: 1.25; }
+.utilisateur-infos strong { font-size: 14px; }
+.utilisateur-infos small  { font-size: 12px; color: #77728a; }
+.utilisateur-initiale {
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #6d3fd6;
+  background: #e9e1ff;
+  border-radius: 10px;
+}
+/* Icône ronde à moitié remplie (bascule clair/sombre) */
+.bascule {
+  width: 20px; height: 20px;
+  border: 2px solid #6d3fd6;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #6d3fd6 50%, transparent 50%);
+}
+
+/* Conteneur au ratio 945 / 841, hauteur 100 %, centré dans la zone */
+.contenu {
+  container-type: inline-size;         /* active les unités cqw pour tout ce qu'il contient */
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  aspect-ratio: 945 / 841;
+}
+
+/* Titre + sous-titre : centrés sur la ligne verticale à 40 % */
+.intro {
+  position: absolute;
+  top: 8%;                             /* remonté (12 % avant) pour laisser la place aux grandes icônes */
+  left: 40%;
+  transform: translateX(-50%);
+  width: 70%;
+  text-align: center;
+}
+.intro h1 {
+  margin: 0;
+  font-size: max(3.2cqw, 20px);
+  font-weight: 800;
+  color: #14121f;
+}
+.intro p {
+  margin: 0.6cqw 0 0;
+  font-size: max(1.35cqw, 11px);
+  color: #4a4560;
+}
+
+/* Les deux lignes de 5 services (centrées à 40 %) */
+.rangee {
+  position: absolute;
+  left: 40%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(5, 10cqw);  /* icône ≈ 10 % de la largeur */
+  column-gap: 4cqw;                         /* centre à centre = 14 cqw */
+}
+.rangee-1 { top: 23%; }
+.rangee-2 { top: 42.5%; }                   /* assez bas pour laisser ≈ 3 cqw sous les libellés de la ligne 1 */
+
+/* Un service = un vrai <button> */
+.service {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2cqw;
+  padding: 0;
+  font: inherit;
+  color: #14121f;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.carre {
+  position: relative;                  /* pour placer le badge « Nouveau » */
+  width: 10cqw;
+  height: 10cqw;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border-radius: 2.8cqw;
+  box-shadow: 0 1cqw 3cqw rgba(109, 63, 214, 0.18);   /* ombre douce teintée de violet */
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.service:hover .carre {
+  transform: translateY(-0.6cqw);
+  box-shadow: 0 1.6cqw 4cqw rgba(109, 63, 214, 0.28);
+}
+.service:focus-visible,
+.parametres:focus-visible { outline: 2px solid #6d3fd6; outline-offset: 4px; border-radius: 8px; }
+.picto {
+  width: 62%;
+  height: 62%;
+  display: grid;
+  place-items: center;
+  border-radius: 28%;
+}
+.picto svg {
+  width: 62%;
+  height: 62%;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nom {
+  font-size: max(1.7cqw, 10px);
+  white-space: nowrap;
+  color: #000;
+}
+/* Badge « Nouveau » sur l'angle supérieur droit, qui dépasse un peu */
+.badge {
+  position: absolute;
+  top: -1.4cqw;
+  right: -3.2cqw;
+  padding: 0.3cqw 1.4cqw;
+  font-size: max(1.7cqw, 8px);
+  font-weight: 800;
+  color: #2a1d55;
+  background: #e5dcff;
+  border-radius: 99px;
+}
+
+/* Bouton « Paramètres » : tout en bas, sur la même ligne verticale que le titre */
+.parametres {
+  position: absolute;
+  bottom: 3%;
+  left: 40%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7cqw;
+  padding: 0.7cqw 1.9cqw;
+  font: inherit;
+  font-size: max(1.2cqw, 11px);
+  color: #4a3a8a;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #cbbcf2;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.parametres:hover { background: #fff; }
+.parametres svg {
+  width: max(1.5cqw, 13px);
+  height: max(1.5cqw, 13px);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+/* ---------- Bulle de message humoristique ---------- */
+.toast-zone {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;                /* ne bloque pas les clics sur la page */
+}
+.toast {
+  max-width: min(440px, 80%);
+  padding: 18px 26px;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  text-align: center;
+  color: #fff;
+  background: #2b2250;
+  border: 2px solid #8b5cf6;
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(30, 20, 80, 0.45);
+  /* d'abord une apparition, puis (après 0,3 s) une petite secousse */
+  animation: toast-apparition 0.3s ease-out, toast-secousse 0.4s 0.3s;
+}
+@keyframes toast-apparition {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes toast-secousse {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(8px); }
+  60%      { transform: translateX(-5px); }
+  80%      { transform: translateX(5px); }
+}
+
+/* ---------- Barre des tâches ---------- */
+.taskbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(14, 16, 40, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.taskbar-gauche { display: flex; gap: 8px; }
+.tache {
+  width: 28px; height: 28px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+}
+.tache.actif { background: rgba(139, 92, 246, 0.8); }
+.taskbar-heure { font-size: 14px; color: #fff; }
+
+/* =====================================================
+   ÉTAPE 2 (provisoire) : une carte centrée
+   ===================================================== */
+.etape-carte {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.etape-carte .carte { width: 100%; }
+/* Le <button> doit avoir la même largeur que les liens .bouton de l'accueil */
+.accueil > button.bouton { width: 100%; }
+
+/* =====================================================
+   ÉCRAN ÉTROIT (moins de 900 px) : message à la place du bureau
+   ===================================================== */
+.ecran-etroit { display: none; }
+
+@media (max-width: 899px) {
+  .etape { display: none !important; }
+  .ecran-etroit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .ecran-etroit .carte { width: 100%; }
+}
+
+/* =====================================================
+   Pour les personnes qui ne veulent pas d'animations
+   ===================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+  .carre,
+  .parametres { transition: none; }
+  .service:hover .carre { transform: none; }
+}

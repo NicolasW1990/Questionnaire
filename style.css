@@ -30,6 +30,17 @@ body {
 
 h1, h2 { margin-top: 0; }
 
+/* Petit lien « ← Accueil » au-dessus de la carte du quiz */
+.lien-accueil {
+  display: block;
+  max-width: 1336px;
+  margin: 0 auto 8px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.lien-accueil:hover { color: var(--texte); text-decoration: underline; }
+
 /* ===== Zone d'image paysage (format 16:9) ===== */
 /* Taille conseillée du fichier : 1280 x 720 px */
 .image-cadre {
