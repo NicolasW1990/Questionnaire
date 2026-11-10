@@ -16,14 +16,15 @@
   <!-- ===================================================== -->
   <!--  ÉTAPE 1 : le faux bureau d'ordinateur                -->
   <!-- ===================================================== -->
-  <section class="etape bureau" id="etape-1" data-etape="1">
+  <!-- Ce bureau sert pour les étapes 1, 2 et 3 : seule la page web dans le navigateur change -->
+  <section class="etape bureau" id="etape-bureau" data-etapes="1 2 3 4">
 
     <!-- Petit lien discret pour revenir à l'accueil (en haut à gauche) -->
     <a class="lien-accueil-bureau" href="accueil.html">← Accueil</a>
 
     <!-- Colonne de gauche (≈ 22 % de la largeur) : objets posés sur le bureau -->
     <div class="colonne">
-      <!-- TODO : contenu à définir (le téléphone et le calepin sont décoratifs pour l'instant) -->
+      <!-- TODO : contenu à définir (le téléphone est décoratif ; le calepin ne devient cliquable qu'à l'étape 4) -->
 
       <!-- Faux smartphone type iPhone -->
       <div class="iphone" aria-hidden="true">
@@ -45,10 +46,11 @@
         </div>
       </div>
 
-      <!-- Faux calepin (papier à lignes, légèrement penché) -->
-      <div class="calepin" aria-hidden="true">
+      <!-- Faux calepin (papier à lignes, légèrement penché).
+           C'est un <button> désactivé (donc décoratif) : autotest.js ne l'active qu'à l'étape 4 -->
+      <button type="button" class="calepin" id="calepin" disabled tabindex="-1" aria-hidden="true">
         <span class="calepin-titre">Notes</span>
-      </div>
+      </button>
     </div>
 
     <!-- Fenêtre de navigateur : remplit le reste de l'écran -->
@@ -59,19 +61,22 @@
         <span class="pastille rouge"></span>
         <span class="pastille orange"></span>
         <span class="pastille vert"></span>
-        <span class="onglet">SuiteSécurité – Accueil</span>
+        <span class="onglet" id="onglet-texte">SuiteSécurité – Accueil</span>
       </div>
 
       <!-- Barre d'adresse : cadenas + adresse -->
       <div class="fenetre-adresse" aria-hidden="true">
         <span class="adresse">
           <svg viewBox="0 0 24 24" class="cadenas"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-          https://suite-securite.example
+          <span id="adresse-texte">https://suite-securite.example</span>
         </span>
       </div>
 
       <!-- Zone de la page web simulée -->
       <div class="page">
+
+        <!-- ===== VUE 1 : « Accueil des services » (étape 1) ===== -->
+        <div class="vue vue-accueil" data-vues="accueil">
 
         <!-- Bloc utilisateur (coin supérieur droit de toute la zone) -->
         <div class="utilisateur" aria-hidden="true">
@@ -156,10 +161,352 @@
           </button>
         </div>
 
+        </div> <!-- fin de la vue « accueil » -->
+
+        <!-- ===== VUES 2 et 3 : pages « Compte » (étape 2) et « Récupération » (étape 3) ===== -->
+        <!-- Le menu de gauche et la barre du haut sont COMMUNS aux deux pages :
+             seul le contenu (.c-contenu) change, selon data-sous. -->
+        <!-- Tout est placé en % (position) et en cqw (tailles) pour garder les proportions -->
+        <div class="vue vue-compte" data-vues="compte recuperation" hidden>
+          <div class="c-page">
+
+            <!-- Menu latéral gauche -->
+            <nav class="c-menu">
+              <div class="c-menu-haut">
+                <span class="c-menu-titre">SuiteSécurité Compte</span>
+                <button type="button" class="c-grille" data-msg="grille" aria-label="Applications">
+                  <svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+                </button>
+              </div>
+              <p class="c-menu-section">Compte</p>
+
+              <!-- data-vue-menu : la page pour laquelle cette entrée est « sélectionnée » -->
+              <button type="button" class="c-entree actif" data-msg="menu-accueil" data-vue-menu="compte">
+                <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Accueil</span>
+              </button>
+              <button type="button" class="c-entree" data-msg="menu-abonnement">
+                <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg><span>Abonnement</span>
+              </button>
+              <button type="button" class="c-entree" data-msg="menu-changer">
+                <svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>Changer d'abonnement</span>
+              </button>
+              <!-- « Récupération » : depuis la page Compte, ouvre la page Récupération (étape 3) ;
+                   quand on y est déjà, affiche un message -->
+              <button type="button" class="c-entree" id="btn-recuperation" data-vue-menu="recuperation">
+                <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v4h4"/></svg><span>Récupération</span>
+                <span class="c-point" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="c-entree" data-msg="menu-compte">
+                <svg viewBox="0 0 24 24"><circle cx="8" cy="14" r="4"/><path d="M11 11l9-8M16 6l3 3"/></svg><span>Compte et mot de passe</span>
+              </button>
+              <button type="button" class="c-entree" data-msg="menu-langue">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span>Langue et heure</span>
+              </button>
+              <button type="button" class="c-entree" data-msg="menu-apparence">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg><span>Apparence</span>
+              </button>
+              <button type="button" class="c-entree" data-msg="menu-securite">
+                <svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg><span>Sécurité et vie privée</span>
+              </button>
+              <button type="button" class="c-entree" data-msg="menu-parrainer">
+                <svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M12 9v12M3 13h18M12 9C9 9 8 4 11 4c2 0 1 5 1 5zM12 9c3 0 4-5 1-5-2 0-1 5-1 5z"/></svg><span>Parrainer un ami</span>
+              </button>
+            </nav>
+
+            <!-- Barre du haut -->
+            <header class="c-barre">
+              <button type="button" class="c-recherche" id="c-recherche" data-msg="recherche">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/></svg>
+                <span>Rechercher dans les paramètres</span>
+              </button>
+              <div class="c-barre-droite">
+                <button type="button" class="c-premium" data-msg="premium">
+                  <svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/></svg>
+                  <span>Passez à Premium</span>
+                </button>
+                <div class="c-user" aria-hidden="true">
+                  <strong>Alex Exemple</strong>
+                  <small>alex@exemple.ch</small>
+                </div>
+                <span class="c-initiale" aria-hidden="true">A</span>
+              </div>
+            </header>
+
+            <!-- ===== Contenu de la page « Compte » ===== -->
+            <div class="c-contenu" data-sous="compte">
+
+            <!-- a) Titre -->
+            <h2 class="c-titre">Votre abonnement</h2>
+
+            <!-- b) Carte « Offre Gratuite » + 2 anneaux de stockage (non cliquables, sauf les ⓘ) -->
+            <div class="c-carte-abo">
+              <div class="c-gratuite">
+                <span class="c-gratuite-icone"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/></svg></span>
+                <span>Offre Gratuite</span>
+              </div>
+              <div class="c-stock c-stock-mid">
+                <svg class="c-anneau" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" class="c-anneau-fond"/><circle cx="18" cy="18" r="14" class="c-anneau-val" transform="rotate(-90 18 18)"/></svg>
+                <div class="c-stock-texte">
+                  Espace de stockage utilisé de Courriel
+                  <button type="button" class="c-info" data-msg="info" aria-label="Information"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
+                  <strong>0.00 Go sur 0.5 Go</strong>
+                </div>
+              </div>
+              <div class="c-stock c-stock-droite">
+                <svg class="c-anneau" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" class="c-anneau-fond"/><circle cx="18" cy="18" r="14" class="c-anneau-val" transform="rotate(-90 18 18)"/></svg>
+                <div class="c-stock-texte">
+                  Espace de stockage utilisé de Fichiers
+                  <button type="button" class="c-info" data-msg="info" aria-label="Information"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
+                  <strong>0.00 Go sur 2 Go</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- c) Lien violet -->
+            <button type="button" class="c-lien" data-msg="comparer">Comparer tous les abonnements ›</button>
+
+            <!-- d) Grand panneau lavande (fond) et son contenu -->
+            <div class="c-panneau"></div>
+
+            <!-- Ligne du haut du panneau : offre + prix + bouton -->
+            <div class="c-offre-haut">
+              <div class="c-offre-gauche">
+                <span class="c-offre-icone"><svg viewBox="0 0 24 24"><path d="M12 12c-2-3-4-4-6-4a4 4 0 0 0 0 8c2 0 4-1 6-4s4-4 6-4a4 4 0 0 1 0 8c-2 0-4-1-6-4"/></svg></span>
+                <div class="c-offre-nom">
+                  <strong>Offre Complète</strong>
+                  <small>1 mois</small>
+                </div>
+              </div>
+              <div class="c-offre-droite">
+                <div class="c-prix-gros"><b>CHF 12.99</b><span>/mois</span></div>
+                <button type="button" class="c-bouton" data-msg="bouton-abonnement">Changer d'abonnement</button>
+              </div>
+            </div>
+
+            <!-- 4 petites cartes produit (non cliquables) -->
+            <div class="c-produits">
+              <div class="c-mini">
+                <div class="c-mini-tete"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>Courriel</span></div>
+                <p>Messagerie sécurisée qui protège votre vie privée.</p>
+              </div>
+              <div class="c-mini">
+                <div class="c-mini-tete"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Fichiers</span></div>
+                <p>Stockage cloud chiffré pour vos photos et fichiers</p>
+              </div>
+              <div class="c-mini">
+                <div class="c-mini-tete"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg><span>VPN</span></div>
+                <p>Votre passerelle vers la liberté en ligne</p>
+              </div>
+              <div class="c-mini">
+                <div class="c-mini-tete"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Mots de passe</span></div>
+                <p>Gestionnaire de mots de passe avec protection de l'identité.</p>
+              </div>
+            </div>
+
+            <!-- 2 grandes cartes d'offre -->
+            <div class="c-offres">
+              <div class="c-offre">
+                <strong class="c-offre-titre">1 mois d'abonnement</strong>
+                <div class="c-prix"><b>CHF 12.99</b><span>/mois</span></div>
+                <button type="button" class="c-bouton c-bouton-contour" data-msg="bouton-abonnement">Changer d'abonnement</button>
+              </div>
+              <div class="c-offre c-offre-vedette">
+                <span class="c-badge">Meilleure offre</span>
+                <div class="c-offre-ligne">
+                  <strong class="c-offre-titre">12 mois d'abonnement</strong>
+                  <span class="c-eco">ÉCONOMISEZ 23%</span>
+                </div>
+                <div class="c-prix"><b>CHF 9.99</b><span>/mois</span></div>
+                <button type="button" class="c-bouton" data-msg="bouton-abonnement">Changer d'abonnement</button>
+              </div>
+            </div>
+
+            </div> <!-- fin du contenu « compte » -->
+
+            <!-- ===== Contenu de la page « Récupération » (étape 3) ===== -->
+            <div class="c-contenu" data-sous="recuperation" hidden>
+              <!-- Zone qui défile (le menu et la barre du haut, eux, restent fixes) -->
+              <div class="r-defile">
+                <div class="r-colonne">
+
+                  <!-- 1. Titre + paragraphe -->
+                  <h2 class="r-titre">Récupération</h2>
+                  <p class="r-intro">Le chiffrement de bout en bout de SuiteSécurité signifie que seul vous pouvez déverrouiller vos données. Configurez des options de récupération afin de ne jamais perdre vos accès.</p>
+
+                  <!-- 2. Carte « Capacité de récupération » -->
+                  <section class="r-carte">
+                    <div class="r-entete">
+                      <span class="r-bouclier" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V5z"/></svg>
+                        <b>3/10</b>
+                      </span>
+                      <strong class="r-cap-titre">Capacité de récupération</strong>
+                      <span class="r-faible">Faible
+                        <button type="button" class="c-info r-info" data-msg="info-faible" aria-label="Information"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
+                      </span>
+                      <!-- Barre de 10 segments : les 3 premiers rouges -->
+                      <div class="r-segments" aria-hidden="true">
+                        <span class="rouge"></span><span class="rouge"></span><span class="rouge"></span>
+                        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                      </div>
+                    </div>
+                    <div class="r-corps">
+                      <strong>Évitez toute perte de données en prenant quelques précautions.</strong>
+                      <p class="r-gris">Votre configuration de récupération est incomplète. Si vous oubliez votre mot de passe, vous risquez toujours de ne plus pouvoir accéder à vos e-mails, à vos fichiers et à vos mots de passe.</p>
+                      <!-- SEUL élément qui change de page : étape 4 -->
+                      <button type="button" class="r-bouton-rose" id="btn-methodes">Ajouter des méthodes de récupération</button>
+                    </div>
+                  </section>
+
+                  <!-- 3. Options de réinitialisation du mot de passe -->
+                  <h3 class="r-section">Options de réinitialisation du mot de passe</h3>
+                  <p class="r-gris r-section-texte">Ceci permet de récupérer les accès à votre compte SuiteSécurité mais ne permet de récupérer vos données chiffrées.</p>
+                  <div class="r-carte">
+                    <button type="button" class="r-ligne" data-msg="verif-email">
+                      <svg class="r-icone" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+                      <span class="r-nom">Vérification par e-mail</span>
+                      <span class="r-pastille r-orange"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>Ajouter une adresse e-mail</span>
+                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+                    </button>
+                    <button type="button" class="r-ligne" data-msg="verif-sms">
+                      <svg class="r-icone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+                      <span class="r-nom">Vérification SMS</span>
+                      <span class="r-pastille r-orange"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>Ajouter un numéro de téléphone</span>
+                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+                    </button>
+                  </div>
+
+                  <!-- 4. Options de récupération de données -->
+                  <h3 class="r-section">Options de récupération de données</h3>
+                  <p class="r-gris r-section-texte">Comment déverrouiller mes données chiffrées si je perds mon mot de passe.</p>
+                  <div class="r-carte">
+                    <!-- Bandeau beige -->
+                    <div class="r-bandeau">
+                      <span class="r-bandeau-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 11v6M12 7.5v.01"/></svg></span>
+                      <p>La récupération des données nécessite une option de réinitialisation du mot de passe (e-mail ou SMS).</p>
+                      <button type="button" class="r-bouton-blanc" data-msg="ajouter-option">Ajouter une option</button>
+                    </div>
+                    <button type="button" class="r-ligne" data-msg="sauvegarde-appareil">
+                      <svg class="r-icone" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+                      <span class="r-nom">Sauvegarde des données de l'appareil</span>
+                      <span class="r-pastille r-bleu"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Activée</span>
+                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+                    </button>
+                    <button type="button" class="r-ligne" data-msg="fichier-recup">
+                      <svg class="r-icone" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>
+                      <span class="r-nom">Fichier de récupération</span>
+                      <span class="r-pastille r-orange"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>Non enregistré</span>
+                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+                    </button>
+                    <button type="button" class="r-ligne" data-msg="contacts-recup">
+                      <svg class="r-icone" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M17 11a3 3 0 1 0 0-6M19 14c2 .5 3 2.5 3 5"/></svg>
+                      <span class="r-nom">Contacts de récupération des données</span>
+                      <span class="r-pastille r-orange"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>Ajouter un contact de récupération</span>
+                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div> <!-- fin du contenu « récupération » -->
+
+          </div>
+        </div>
+
+        <!-- ===== VUE 4 : « Vérifiez votre mot de passe » (étape 4), sans menu latéral ===== -->
+        <!-- Elle réutilise les classes vue-compte et c-page (conteneur en cqw, tailles de texte) -->
+        <div class="vue vue-compte vue-verif" data-vues="verification" hidden>
+          <div class="c-page">
+
+            <!-- 1. En haut à gauche : flèche + logo -->
+            <div class="v-haut">
+              <button type="button" class="v-fleche" data-msg="demi-tour" aria-label="Retour">‹</button>
+              <button type="button" class="v-logo" data-msg="logo"><b>SuiteSécurité</b> <span>Compte</span></button>
+            </div>
+
+            <!-- 2. Titre -->
+            <h2 class="v-titre">Votre liste de récupération</h2>
+
+            <!-- 4. Protection du compte : « Faible » + barre de 10 segments -->
+            <div class="v-protection">
+              <div class="v-protection-ligne">
+                <strong>Protection du compte</strong>
+                <span class="v-faible">Faible
+                  <span class="v-bouclier" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V5z"/></svg>
+                    <b>3</b>
+                  </span>
+                </span>
+              </div>
+              <div class="v-segments" aria-hidden="true">
+                <span class="rouge"></span><span class="rouge"></span><span class="rouge"></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <!-- 5. Les deux « feuilles » empilées sous la carte (décoratives) -->
+            <div class="v-feuille v-feuille-2" aria-hidden="true"></div>
+            <div class="v-feuille v-feuille-1" aria-hidden="true"></div>
+
+            <!-- La carte blanche -->
+            <div class="v-carte">
+              <!-- Cadenas gris + petit badge vert à coche -->
+              <div class="v-cadenas" aria-hidden="true">
+                <svg class="v-cadenas-icone" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                <svg class="v-cadenas-badge" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.5 3.5 6.5-7"/></svg>
+              </div>
+              <h3 class="v-carte-titre">Vérifiez votre mot de passe</h3>
+              <p class="v-carte-texte">Pour vous aider à vous souvenir de votre mot de passe, nous vous demanderons régulièrement de le saisir.</p>
+              <label class="v-etiquette" for="champ-mdp">Saisissez votre mot de passe actuel</label>
+              <!-- Champ spécial : c'est autotest.js qui écrit les lettres (voir MOT_DE_PASSE) -->
+              <div class="v-champ-bloc">
+                <input type="password" id="champ-mdp" class="v-champ" autocomplete="new-password"
+                       autocapitalize="off" autocorrect="off" spellcheck="false">
+                <button type="button" class="v-oeil" id="btn-oeil" aria-label="Afficher le mot de passe" aria-pressed="false">
+                  <svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <button type="button" class="v-lien" data-msg="mdp-oublie">Mot de passe oublié ?</button>
+            </div>
+
+            <!-- 6. Deux boutons sous la carte -->
+            <div class="v-boutons">
+              <button type="button" class="v-plus-tard" data-msg="plus-tard">Plus tard</button>
+              <button type="button" class="v-verifier" id="btn-verifier" disabled>Vérifier</button>
+            </div>
+
+          </div>
+        </div>
+
         <!-- Bulle de message humoristique (centrée dans la zone de page) -->
         <div class="toast-zone">
           <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
         </div>
+      </div>
+    </div>
+
+    <!-- Bulle de dialogue (étape 4 seulement) : pointe vers le calepin, non cliquable -->
+    <div class="bulle-calepin" id="bulle-calepin" hidden>J'ai noté mon mot de passe dans mon calepin secret</div>
+
+    <!-- Calepin ouvert en grand (étape 4) : fond assombri + même calepin en grand.
+         Page 1 = texte sans importance ; au survol, elle se tourne et dévoile la page 2 -->
+    <div class="carnet-fond" id="carnet-fond" hidden>
+      <div class="carnet" id="carnet" role="dialog" aria-label="Calepin">
+        <div class="carnet-pages">
+          <!-- Page 2 (dessous) : le mot de passe est écrit par autotest.js -->
+          <div class="carnet-page carnet-page-2">
+            <span class="calepin-titre">Notes</span>
+            <p>Mon mot de passe :</p>
+            <p class="carnet-mdp" id="carnet-mdp"></p>
+          </div>
+          <!-- Page 1 (dessus) : focalisable au clavier pour tourner la page -->
+          <div class="carnet-page carnet-page-1" tabindex="0" aria-label="Page 1 : tourner la page">
+            <span class="calepin-titre">Notes</span>
+            <p>À faire : appeler le garage, acheter du café, rendez-vous mardi 14 h.</p>
+            <span class="carnet-coin"></span>
+          </div>
+        </div>
+        <button type="button" class="carnet-fermer" id="carnet-fermer" aria-label="Fermer le calepin">✕</button>
       </div>
     </div>
 
@@ -177,9 +524,9 @@
   </section>
 
   <!-- ===================================================== -->
-  <!--  ÉTAPE 2 : provisoire                                 -->
+  <!--  ÉTAPE 5 : provisoire                                 -->
   <!-- ===================================================== -->
-  <section class="etape etape-carte" id="etape-2" data-etape="2" hidden>
+  <section class="etape etape-carte" id="etape-5" data-etapes="5" hidden>
     <div class="carte accueil">
       <h1>Auto-test</h1>
       <p>Suite de l'auto-test : en construction.</p>

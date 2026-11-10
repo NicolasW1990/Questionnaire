@@ -52,6 +52,9 @@
 }
 .lien-accueil-bureau:hover { color: #fff; text-decoration: underline; }
 
+/* À l'étape 4, la bulle de dialogue occupe le haut de la colonne (voir preparerEtape4 dans autotest.js) */
+.bureau.avec-bulle { --reserve-haut: 112px; }
+
 /* ---------- Colonne de gauche (objets posés en bas) ---------- */
 .colonne {
   container-type: inline-size;        /* permet d'utiliser cqw pour les tailles */
@@ -118,25 +121,33 @@
 }
 
 /* --- Faux calepin --- */
-.calepin {
+/* ---- Papier partagé : le petit calepin ET le calepin ouvert (.carnet-page) ----
+   Toutes les dimensions sont en em (1em = 1 % de la largeur du calepin, voir --largeur) :
+   agrandir le calepin = changer UNE valeur (--largeur), le papier suit.
+   (Les unités cqw ne marchent pas sur l'élément conteneur lui-même, d'où les em ici.) */
+.calepin,
+.carnet {
+  --ombre: 0 1.1em 3em rgba(0, 0, 0, 0.4);
   container-type: inline-size;
   position: relative;
-  /* Environ le double de l'ancienne taille, limité à la largeur de la colonne pour ne rien couper */
-  width: min(98cqw, 60vh);
   aspect-ratio: 5 / 4;
-  flex: none;
-  transform: rotate(-2.5deg);          /* léger angle */
+  font-size: calc(var(--largeur) / 100);
+  border-radius: 0.6em;
+  box-shadow: var(--ombre);
+}
+.calepin,
+.carnet-page {
   /* Lignes de cahier */
   background: repeating-linear-gradient(
-    #fffdf2 0, #fffdf2 17px,
-    #c9d6ee 17px, #c9d6ee 18px
+    #fffdf2 0, #fffdf2 3.2em,
+    #c9d6ee 3.2em, #c9d6ee 3.4em
   );
-  background-position: 0 28cqw;
-  border-radius: 3px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  background-position: 0 27.6em;
+  border-radius: 0.6em;
 }
 /* Trait de marge rouge */
-.calepin::before {
+.calepin::before,
+.carnet-page::before {
   content: "";
   position: absolute;
   top: 0; bottom: 0;
@@ -145,14 +156,15 @@
   background: rgba(214, 90, 90, 0.6);
 }
 /* Bande du haut (là où le papier est relié) */
-.calepin::after {
+.calepin::after,
+.carnet-page::after {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 22cqw;
   background: #f3e7b4;
-  border-radius: 3px 3px 0 0;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 0.6em 0.6em 0 0;
+  box-shadow: 0 0.2em 0 rgba(0, 0, 0, 0.1);
 }
 .calepin-titre {
   position: absolute;
@@ -161,6 +173,32 @@
   font: italic 8cqw Georgia, serif;
   color: #5b4a1a;
 }
+
+/* --- Faux calepin (colonne de gauche) : seuls la taille, l'angle et l'état bouton sont propres à lui --- */
+.calepin {
+  /* Environ le double de l'ancienne taille, limité à la largeur de la colonne pour ne rien couper.
+     Le 3e choix du min() ne joue que sur les écrans COURTS : il garde de la place pour l'iPhone
+     (hauteur = largeur × 2,0556) et pour le haut de la colonne (--reserve-haut : lien « ← Accueil »,
+     ou lien + bulle de dialogue à l'étape 4). 44 px = barre des tâches, 20 + 20 px = marges. */
+  --largeur: min(98cqw, 60vh,
+             calc((100vh - 84px - var(--reserve-haut, 40px) - min(calc((22vw - 24px) * 0.48), 22vh) * 2.0556) / 0.8));
+  width: var(--largeur);
+  flex: none;
+  transform: rotate(-2.5deg);          /* léger angle */
+  /* C'est un <button> : on annule son style par défaut. Désactivé = purement décoratif */
+  display: block;
+  padding: 0;
+  border: 0;
+  cursor: default;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+/* À l'étape 4, le calepin est actif : curseur main + léger soulèvement au survol */
+.calepin:not(:disabled) { cursor: pointer; }
+.calepin:not(:disabled):hover {
+  transform: rotate(-2.5deg) translateY(-8px);
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.45);
+}
+.calepin:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
 
 /* ---------- Fenêtre de navigateur ---------- */
 .fenetre {
@@ -466,7 +504,882 @@
 .taskbar-heure { font-size: 14px; color: #fff; }
 
 /* =====================================================
-   ÉTAPE 2 (provisoire) : une carte centrée
+   VUES DU FAUX NAVIGATEUR (accueil des services / page Compte)
+   Chaque vue remplit toute la zone de page ; une seule est visible.
+   ===================================================== */
+.vue {
+  position: absolute;
+  inset: 0;
+}
+.vue[hidden] { display: none !important; }
+
+/* =====================================================
+   VUE « COMPTE » (étape 2)
+   Positions en % de la zone de page, tailles en cqw (largeur de la zone).
+   Le texte ne descend jamais sous 11 px.
+   ===================================================== */
+.vue-compte {
+  container-type: inline-size;         /* active les cqw pour toute la page Compte */
+  background: #f5f5f8;
+  color: #1d1a3a;
+  overflow: hidden;
+}
+/* Enveloppe : les cqw ne marchent que dans les ENFANTS du conteneur, d'où ce div */
+.c-page {
+  --t: max(1.05cqw, 11px);             /* taille de texte normale */
+  --t-fort: max(1.25cqw, 12px);        /* texte un peu plus grand */
+  position: absolute;
+  inset: 0;
+  font-size: var(--t);
+}
+.vue-compte svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+.vue-compte button { font: inherit; cursor: pointer; }
+.vue-compte button:focus-visible { outline: 2px solid #6d4aff; outline-offset: 2px; }
+
+/* ---------- Menu latéral gauche (≈ 14 % de la largeur) ---------- */
+.c-menu {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 14%;
+  display: flex;
+  flex-direction: column;
+  background: #1b1650;
+  color: #d8d4f5;
+}
+.c-menu-haut {
+  flex: none;
+  height: 6%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5cqw;
+  padding: 0 1cqw;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.c-menu-titre { font-weight: 700; line-height: 1.15; color: #fff; }
+.c-grille {
+  width: max(1.6cqw, 14px);
+  height: max(1.6cqw, 14px);
+  padding: 0;
+  color: #b9b4e6;
+  background: none;
+  border: 0;
+}
+.c-grille svg { width: 100%; height: 100%; }
+.c-menu-section { margin: 0; padding: 1.4cqw 1.6cqw 0.6cqw; color: #9a95c8; }
+.c-entree {
+  flex: none;
+  height: 6%;
+  margin: 0 0.8cqw;
+  padding: 0 0.8cqw;
+  display: flex;
+  align-items: center;
+  gap: 0.8cqw;
+  line-height: 1.15;
+  text-align: left;
+  color: #d8d4f5;
+  background: none;
+  border: 0;
+  border-radius: 0.9cqw;
+  transition: background 0.15s ease;
+}
+.c-entree:hover { background: rgba(255, 255, 255, 0.07); }
+.c-entree.actif { background: #2d2670; color: #fff; }      /* entrée sélectionnée */
+.c-entree svg { width: max(1.3cqw, 13px); height: max(1.3cqw, 13px); }
+.c-point {                                                   /* pastille orange de « Récupération » */
+  flex: none;
+  margin-left: auto;
+  width: max(0.75cqw, 8px);
+  height: max(0.75cqw, 8px);
+  border-radius: 50%;
+  background: #ff9a1f;
+}
+
+/* ---------- Barre du haut ---------- */
+.c-barre {
+  position: absolute;
+  left: 14%; right: 0; top: 0;
+  height: 6%;
+  display: flex;
+  align-items: center;
+  padding: 0 0.8cqw 0 2.5cqw;
+  background: #fff;
+  border-bottom: 1px solid #e6e4ef;
+}
+.c-recherche {
+  flex: none;
+  width: 30cqw;                         /* ≈ 30 % de la largeur de la page */
+  height: 62%;
+  display: flex;
+  align-items: center;
+  gap: 0.7cqw;
+  padding: 0 1.2cqw;
+  text-align: left;
+  color: #8a869f;
+  background: #f1f1f6;
+  border: 0;
+  border-radius: 99px;
+}
+.c-recherche svg { width: max(1.3cqw, 13px); height: max(1.3cqw, 13px); }
+.c-barre-droite {
+  height: 100%;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.4cqw;
+}
+.c-premium {
+  height: 62%;
+  display: flex;
+  align-items: center;
+  gap: 0.5cqw;
+  padding: 0 1.3cqw;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #1d1a3a;
+  /* bordure dégradée turquoise / rose : fond blanc + dégradé derrière la bordure */
+  border: 2px solid transparent;
+  border-radius: 99px;
+  background: linear-gradient(#fff, #fff) padding-box, linear-gradient(90deg, #14c8c0, #ff6fae) border-box;
+}
+.c-premium svg { width: max(1.3cqw, 13px); height: max(1.3cqw, 13px); color: #14b8b0; }
+.c-user { display: flex; flex-direction: column; text-align: right; line-height: 1.2; }
+.c-user small { color: #77728a; font-size: var(--t); }
+.c-initiale {
+  height: 70%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #6d4aff;
+  background: #e9e1ff;
+  border-radius: 50%;
+}
+
+/* ---------- Contenu : titre ---------- */
+.c-titre {
+  position: absolute;
+  left: 19%;
+  top: 11%;                             /* ≈ 13 % demandé : remonté un peu pour ne pas toucher la carte à 1920 px */
+  margin: 0;
+  font-size: max(2cqw, 16px);
+  font-weight: 800;
+}
+
+/* ---------- Carte « Offre Gratuite » ---------- */
+.c-carte-abo {
+  position: absolute;
+  left: 19%;
+  width: 77.5%;                         /* le contenu va de 19 % à 96,5 % */
+  top: 17%;
+  height: 11%;
+  background: #fff;
+  border-radius: 1.2cqw;
+  box-shadow: 0 0.15cqw 0.6cqw rgba(30, 20, 80, 0.06);
+}
+.c-gratuite {
+  position: absolute;
+  left: 2cqw;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  font-size: var(--t-fort);
+  font-weight: 700;
+}
+.c-gratuite-icone {
+  width: 3.4cqw;
+  height: 3.4cqw;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #6d4aff;
+  border-radius: 0.9cqw;
+}
+.c-gratuite-icone svg { width: 55%; height: 55%; }
+.c-stock {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.9cqw;
+}
+.c-stock-mid    { left: 55.5%; width: 21.5%; }   /* ≈ 62 % de la largeur de la page */
+.c-stock-droite { left: 78.7%; width: 19%; }     /* ≈ 80 % de la largeur de la page */
+.c-anneau { width: max(2.6cqw, 26px); height: max(2.6cqw, 26px); }
+.c-anneau circle { fill: none; stroke-width: 4; }
+.c-anneau-fond { stroke: #e3e1ee; }
+.c-anneau-val { stroke: #18c2b4; stroke-dasharray: 5 90; }   /* anneau presque vide */
+.c-stock-texte { color: #77728a; line-height: 1.25; }
+.c-stock-texte strong { display: block; color: #1d1a3a; }
+.c-info {
+  display: inline-grid;
+  width: 1.15em;
+  height: 1.15em;
+  padding: 0;
+  vertical-align: -0.2em;
+  color: #8a869f;
+  background: none;
+  border: 0;
+}
+.c-info svg { width: 100%; height: 100%; }
+
+/* ---------- Lien « Comparer… » ---------- */
+.c-lien {
+  position: absolute;
+  right: 3.5%;
+  top: 39%;
+  padding: 0;
+  font-weight: 600;
+  color: #6d4aff;
+  background: none;
+  border: 0;
+}
+.c-lien:hover { text-decoration: underline; }
+
+/* ---------- Grand panneau lavande ---------- */
+.c-panneau {
+  position: absolute;
+  left: 19%;
+  width: 77.5%;
+  top: 43%;
+  height: 49%;
+  background: #dddaec;
+  border-radius: 2cqw;
+}
+
+/* Ligne du haut du panneau */
+.c-offre-haut {
+  position: absolute;
+  left: 21%;
+  width: 73.5%;
+  top: 45%;
+  height: 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.c-offre-gauche { display: flex; align-items: center; gap: 1cqw; }
+.c-offre-icone {
+  width: 3.6cqw;
+  height: 3.6cqw;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  border-radius: 1cqw;
+}
+.c-offre-icone svg { width: 62%; height: 62%; }
+.c-offre-nom { display: flex; flex-direction: column; line-height: 1.25; }
+.c-offre-nom strong { font-size: var(--t-fort); }
+.c-offre-nom small { font-size: var(--t); color: #77728a; }
+.c-offre-droite { display: flex; align-items: center; gap: 1.6cqw; }
+.c-prix-gros { color: #6d4aff; white-space: nowrap; }
+.c-prix-gros b { font-size: max(2.4cqw, 20px); font-weight: 800; }
+.c-prix-gros span { margin-left: 0.3cqw; font-size: var(--t); }
+
+/* Boutons « Changer d'abonnement » */
+.c-bouton {
+  padding: 0.8cqw 1.8cqw;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fff;
+  background: #6d4aff;
+  border: 2px solid #6d4aff;
+  border-radius: 1cqw;
+  transition: filter 0.15s ease;
+}
+.c-bouton:hover { filter: brightness(1.12); }
+.c-bouton-contour { color: #6d4aff; background: #fff; }
+
+/* 4 petites cartes produit */
+.c-produits {
+  position: absolute;
+  left: 21%;
+  width: 73.5%;
+  top: 54%;
+  height: 13.5%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2cqw;
+}
+.c-mini {
+  padding: 0.55cqw 0.9cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2cqw;
+  background: #fff;
+  border-radius: 1.2cqw;
+  overflow: hidden;
+}
+.c-mini-tete { display: flex; align-items: center; gap: 0.5cqw; font-weight: 600; color: #6d4aff; }
+.c-mini-tete svg { width: max(1.3cqw, 13px); height: max(1.3cqw, 13px); }
+.c-mini p { margin: 0; font-weight: 700; line-height: 1.15; }
+
+/* 2 grandes cartes d'offre */
+.c-offres {
+  position: absolute;
+  left: 21%;
+  width: 73.5%;
+  top: 69%;
+  height: 18%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5cqw;
+}
+.c-offre {
+  position: relative;                   /* pour placer le badge sur le bord */
+  padding: 0.8cqw 1.4cqw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4cqw;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 1.4cqw;
+}
+.c-offre-vedette { border-color: #6d4aff; }
+.c-offre-titre { font-size: var(--t-fort); }
+.c-offre-ligne { display: flex; align-items: center; gap: 0.9cqw; }
+.c-eco {
+  padding: 0.15cqw 0.8cqw;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #1d7a46;
+  background: #d6f5e3;
+  border-radius: 99px;
+}
+.c-badge {                              /* posé sur le bord supérieur, au centre */
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -62%);     /* un peu plus haut que le centre du bord, pour ne pas toucher le titre */
+  padding: 0.2cqw 1.2cqw;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fff;
+  background: #6d4aff;
+  border-radius: 99px;
+}
+.c-prix b { font-size: max(2cqw, 18px); font-weight: 800; }
+.c-prix span { margin-left: 0.3cqw; color: #77728a; }
+.c-offre .c-bouton { width: 100%; margin-top: 0.2cqw; }
+
+/* =====================================================
+   CONTENU PARTAGÉ DES PAGES « COMPTE » ET « RÉCUPÉRATION »
+   Le menu et la barre du haut sont communs ; chaque page a son bloc .c-contenu.
+   ===================================================== */
+/* Le menu et la barre restent AU-DESSUS du contenu (le contenu couvre toute la zone) */
+.c-menu, .c-barre { z-index: 2; }
+.c-contenu {
+  position: absolute;
+  inset: 0;
+}
+.c-contenu[hidden] { display: none !important; }
+
+/* =====================================================
+   VUE « RÉCUPÉRATION » (étape 3)
+   Colonne étroite alignée à gauche (≈ 20 % → 82 % de la largeur de la page).
+   Seule cette zone défile : le menu et la barre du haut restent fixes.
+   ===================================================== */
+.r-defile {
+  position: absolute;
+  left: 14%; right: 0; top: 6%; bottom: 0;   /* à droite du menu, sous la barre du haut */
+  overflow-y: auto;
+  scrollbar-width: thin;                      /* barre de défilement discrète */
+  scrollbar-color: #cfcbe0 transparent;
+}
+.r-colonne {
+  width: 62cqw;                               /* 82 % - 20 % */
+  margin-left: 6cqw;                          /* 20 % - 14 % (largeur du menu) */
+  padding: 2.6cqw 0 3.5cqw;
+}
+.r-titre { margin: 0 0 0.8cqw; font-size: max(2.1cqw, 17px); font-weight: 800; }
+.r-intro { max-width: 52cqw; margin: 0 0 2cqw; line-height: 1.4; color: #6a6580; }
+.r-gris  { margin: 0; line-height: 1.4; color: #77728a; }
+
+/* Cartes blanches */
+.r-carte {
+  overflow: hidden;                           /* garde le bandeau beige dans les coins arrondis */
+  background: #fff;
+  border-radius: 1.2cqw;
+  box-shadow: 0 0.15cqw 0.6cqw rgba(30, 20, 80, 0.06);
+}
+
+/* --- Capacité de récupération : en-tête --- */
+.r-entete {
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  padding: 1.1cqw 1.6cqw;
+  white-space: nowrap;
+  border-bottom: 1px solid #ececf3;           /* fine ligne de séparation */
+}
+.r-bouclier {
+  position: relative;
+  flex: none;
+  width: max(4.4cqw, 46px);                   /* assez large pour contenir « 3/10 » */
+  height: max(4.7cqw, 48px);
+  display: grid;
+  place-items: center;
+}
+.r-bouclier svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  stroke: #e0394f;                            /* contour rouge */
+  stroke-width: 1.6;
+}
+.r-bouclier b { position: relative; margin-top: -2px; font-size: var(--t); color: #e0394f; }
+.r-cap-titre {
+  text-decoration: underline;
+  text-decoration-color: #e0394f;             /* souligné en rouge fin */
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+}
+.r-faible { display: inline-flex; align-items: center; gap: 0.3cqw; font-weight: 600; color: #e0394f; }
+.r-info { color: #e0394f; }
+/* Barre de 10 segments : 3 rouges, 7 gris */
+.r-segments { flex: 1; display: flex; gap: 0.35cqw; margin-left: 1.2cqw; }
+.r-segments span {
+  flex: 1;
+  height: max(0.5cqw, 5px);
+  background: #e4e3ec;
+  border-radius: 99px;
+}
+.r-segments .rouge { background: #e0394f; }
+
+/* --- Capacité de récupération : corps --- */
+.r-corps {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6cqw;
+  padding: 1.6cqw;
+}
+.r-corps strong { font-size: var(--t-fort); }
+.r-corps .r-gris { max-width: 52cqw; }
+.r-bouton-rose {
+  margin-top: 0.8cqw;
+  padding: 0.9cqw 2cqw;
+  font-weight: 700;
+  color: #3a1a2a;
+  background: #f3a3bb;
+  border: 0;
+  border-radius: 1cqw;
+  transition: filter 0.15s ease;
+}
+.r-bouton-rose:hover { filter: brightness(0.95); }
+
+/* --- Titres de section --- */
+.r-section { margin: 2.6cqw 0 0.4cqw; font-size: var(--t-fort); font-weight: 800; }
+.r-section-texte { margin-bottom: 1cqw; }
+
+/* --- Lignes d'options (boutons sur toute la largeur) --- */
+.r-ligne {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  padding: 1.2cqw 1.6cqw;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  transition: background 0.15s ease;
+}
+.r-ligne + .r-ligne,
+.r-bandeau + .r-ligne { border-top: 1px solid #ececf3; }   /* trait fin entre les lignes */
+.r-ligne:hover { background: #fafafd; }
+.r-icone { width: max(1.5cqw, 15px); height: max(1.5cqw, 15px); color: #4a4560; }
+.r-nom { flex: 0 0 24cqw; font-weight: 600; }
+.r-fleche { margin-left: auto; width: max(1.2cqw, 12px); height: max(1.2cqw, 12px); color: #8a869f; }
+
+/* Pastilles de statut */
+.r-pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5cqw;
+  padding: 0.4cqw 1cqw;
+  white-space: nowrap;
+  border-radius: 99px;
+}
+.r-pastille svg { width: max(1.1cqw, 12px); height: max(1.1cqw, 12px); }
+.r-orange { color: #8a4b00; background: #fde6c8; }
+.r-orange svg { stroke: #e8870e; }
+.r-bleu { color: #1c4f8f; background: #d6e8fb; }
+.r-bleu svg { stroke: #2f7ad6; }
+
+/* --- Bandeau beige de la grande carte --- */
+.r-bandeau {
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  padding: 1.2cqw 1.6cqw;
+  background: #f9e5cc;
+}
+.r-bandeau-icone {
+  flex: none;
+  width: max(2.2cqw, 22px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #ff9a1f;                        /* icône ⓘ orange ronde */
+  border-radius: 50%;
+}
+.r-bandeau-icone svg { width: 60%; height: 60%; stroke-width: 2.6; }
+.r-bandeau p { flex: 1; margin: 0; line-height: 1.35; font-weight: 500; color: #5a3b10; }
+.r-bouton-blanc {
+  flex: none;
+  padding: 0.7cqw 1.5cqw;
+  font-weight: 600;
+  color: #1d1a3a;
+  background: #fff;
+  border: 1px solid #ecd6b8;
+  border-radius: 1cqw;
+}
+.r-bouton-blanc:hover { background: #fffaf3; }
+
+/* =====================================================
+   VUE « VÉRIFICATION » (étape 4) : pas de menu latéral
+   Elle réutilise .vue-compte (conteneur en cqw) et .c-page (variables de taille de texte).
+   Positions en % de la zone de page, tailles en cqw, texte ≥ 11 px.
+   ===================================================== */
+.vue-verif { background: linear-gradient(180deg, #ffffff 0%, #f7f7fc 100%); }
+
+/* 1. Flèche + logo, en haut à gauche */
+.v-haut {
+  position: absolute;
+  left: 2.5%;
+  top: 3%;
+  display: flex;
+  align-items: center;
+  gap: 0.8cqw;
+}
+.v-fleche {
+  padding: 0 0.4cqw;
+  font-size: max(3.2cqw, 28px);
+  font-weight: 700;
+  line-height: 1;
+  color: #6d4aff;
+  background: none;
+  border: 0;
+}
+.v-logo { padding: 0; font-size: var(--t-fort); color: #1d1a3a; background: none; border: 0; }
+.v-logo b { font-weight: 800; }
+.v-logo span { font-weight: 700; color: #6d4aff; }
+
+/* 2. Titre centré sur la colonne (46 % → 82 % de la largeur) */
+.v-titre {
+  position: absolute;
+  left: 46%;
+  width: 36%;
+  top: 10%;
+  margin: 0;
+  text-align: center;
+  font-size: max(1.9cqw, 15px);
+  font-weight: 800;
+}
+
+/* 4. Protection du compte : texte + « Faible » + barre de 10 segments */
+.v-protection {
+  position: absolute;
+  left: 46%;
+  width: 36%;
+  top: 17.5%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7cqw;
+}
+.v-protection-ligne { display: flex; align-items: center; justify-content: space-between; }
+.v-faible { display: inline-flex; align-items: center; gap: 0.5cqw; font-weight: 800; color: #e0394f; }
+.v-bouclier {
+  position: relative;
+  width: max(1.9cqw, 20px);
+  height: max(2.2cqw, 23px);
+  display: grid;
+  place-items: center;
+}
+.v-bouclier svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: #e0394f; stroke: none; }
+.v-bouclier b { position: relative; margin-top: -1px; font-size: var(--t); color: #fff; }
+.v-segments { display: flex; gap: 0.35cqw; }
+.v-segments span {
+  flex: 1;
+  height: max(0.45cqw, 5px);
+  background: #e4e3ec;
+  border-radius: 99px;
+}
+.v-segments .rouge { background: #e0394f; }
+
+/* 5. Les deux « feuilles » empilées sous la carte */
+.v-feuille {
+  position: absolute;
+  top: 25%;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 0.2cqw 0.9cqw rgba(30, 20, 80, 0.08);
+}
+.v-feuille-1 { left: calc(46% + 1.2cqw); width: calc(36% - 2.4cqw); height: calc(55% + 1cqw); }
+.v-feuille-2 { left: calc(46% + 2.4cqw); width: calc(36% - 4.8cqw); height: calc(55% + 2cqw); background: #f1f0f8; }
+
+/* La carte blanche */
+.v-carte {
+  position: absolute;
+  left: 46%;
+  width: 36%;
+  top: 25%;
+  height: 55%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7cqw;
+  padding: 1.5cqw 2cqw;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 0.3cqw 1.4cqw rgba(30, 20, 80, 0.1);
+}
+/* Cadenas gris + petit badge vert à coche */
+.v-cadenas {
+  position: relative;
+  flex: none;
+  align-self: center;
+  width: max(4cqw, 36px);
+  height: max(4cqw, 36px);
+}
+.v-cadenas-icone { width: 100%; height: 100%; color: #9a96ad; stroke-width: 1.8; }
+.v-cadenas .v-cadenas-badge {              /* « .v-cadenas » en plus : pour passer devant la règle .vue-compte svg */
+  position: absolute;
+  right: -25%;
+  bottom: -2%;
+  width: 42%;
+  height: 42%;
+  fill: #2f9e6e;
+  stroke: #fff;
+  stroke-width: 2.4;
+}
+.v-carte-titre { margin: 0; text-align: center; font-size: var(--t-fort); font-weight: 800; }
+.v-carte-texte { margin: 0; line-height: 1.35; color: #4a4560; }
+.v-etiquette { margin: 0.4cqw 0 0; font-weight: 700; }   /* annule le style global de label */
+.v-champ-bloc { position: relative; flex: none; }
+.v-champ {
+  width: 100%;
+  height: max(3cqw, 32px);
+  padding: 0 max(3cqw, 34px) 0 1cqw;
+  font: inherit;
+  font-size: var(--t-fort);
+  color: #1d1a3a;
+  caret-color: #6d4aff;                         /* curseur bien visible */
+  background: #fff;
+  border: 2px solid #6d4aff;                    /* bordure violette = état « focus » */
+  border-radius: 0.9cqw;
+  box-shadow: 0 0 0 0.3cqw rgba(109, 74, 255, 0.18);   /* léger halo */
+  outline: none;
+}
+.v-oeil {
+  position: absolute;
+  right: 0.9cqw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: max(1.8cqw, 18px);
+  height: max(1.8cqw, 18px);
+  padding: 0;
+  color: #6d4aff;
+  background: none;
+  border: 0;
+}
+.v-oeil svg { width: 100%; height: 100%; }
+.v-lien {
+  align-self: flex-start;
+  padding: 0;
+  font-weight: 600;
+  color: #6d4aff;
+  text-decoration: underline;
+  background: none;
+  border: 0;
+}
+
+/* 6. Deux boutons en pastille sous la carte */
+.v-boutons {
+  position: absolute;
+  left: 46%;
+  width: 36%;
+  top: 85%;
+  height: max(4.8%, 32px);
+  display: flex;
+  gap: 1.2cqw;
+}
+.v-boutons button {
+  flex: 1;
+  font-weight: 700;
+  border-radius: 99px;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+/* Fine bordure faite avec une ombre interne (pas de vraie bordure : les deux boutons gardent exactement la même largeur) */
+.v-plus-tard { color: #1d1a3a; background: #fff; border: 0; box-shadow: inset 0 0 0 1px #dcdae8; }
+.v-plus-tard:hover { background: #f7f7fc; }
+.v-verifier {
+  color: #fff;
+  background: linear-gradient(90deg, #2f9e6e, #25a08a);
+  border: 0;
+}
+/* Grisé tant que le mot de passe n'est pas complet */
+.v-verifier:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(0.4); }
+/* Actif : vert vif + une seule pulsation */
+.v-verifier:not(:disabled) { filter: saturate(1.25) brightness(1.05); }
+.v-verifier.pret { animation: pulsation 0.7s ease-out 1; }
+@keyframes pulsation {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(37, 160, 138, 0.6); }
+  50%  { transform: scale(1.06); box-shadow: 0 0 0 0.9cqw rgba(37, 160, 138, 0); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(37, 160, 138, 0); }
+}
+
+/* =====================================================
+   BULLE DE DIALOGUE (étape 4) : colonne de gauche, sous « ← Accueil »
+   ===================================================== */
+.bulle-calepin {
+  position: absolute;
+  left: 16px;
+  top: 44px;
+  z-index: 6;
+  width: calc(28% - 32px);
+  max-width: 330px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #1d1a3a;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  pointer-events: none;                        /* non cliquable */
+  animation: bulle-apparition 0.4s ease-out;
+}
+.bulle-calepin[hidden] { display: none; }
+/* Petite pointe vers le bas (vers le calepin) */
+.bulle-calepin::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 0 0 4px 0;
+  transform: translateX(-50%) rotate(45deg);
+}
+@keyframes bulle-apparition {
+  from { opacity: 0; transform: translateY(-10px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* =====================================================
+   CALEPIN OUVERT (étape 4) : fond assombri + même calepin en grand
+   ===================================================== */
+.carnet-fond {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 8, 30, 0.65);
+  animation: fond-apparition 0.25s ease-out;
+}
+.carnet-fond[hidden] { display: none; }
+@keyframes fond-apparition { from { opacity: 0; } to { opacity: 1; } }
+
+/* Le calepin ouvert réutilise le papier du petit calepin (règles « .calepin, .carnet… » plus haut) :
+   seule la taille change (--largeur), et il est droit. */
+.carnet {
+  --largeur: min(46vw, 78vh);
+  width: var(--largeur);
+  user-select: none;                           /* texte non sélectionnable (pas de copier-coller) */
+  -webkit-user-select: none;
+  font-family: "Segoe Script", "Comic Sans MS", cursive;   /* écriture manuscrite, sans police externe */
+  animation: carnet-agrandir 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+@keyframes carnet-agrandir {
+  from { opacity: 0; transform: scale(0.3) rotate(-4deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0); }
+}
+/* Les pages sont posées l'une sur l'autre ; la perspective donne du relief à la page qui se tourne */
+.carnet-pages {
+  position: absolute;
+  inset: 0;
+  perspective: 150cqw;
+}
+/* Le papier (lignes, marge, bande) vient de la règle partagée « .calepin, .carnet-page » */
+.carnet-page {
+  position: absolute;
+  inset: 0;
+  /* texte posé sous la bande du haut et à droite du trait de marge, sur les lignes (pas de 3,4 cqw) */
+  padding: 24.2cqw 4cqw 3cqw 16cqw;
+  color: #243b8f;                              /* encre bleue */
+  backface-visibility: hidden;                 /* quand la page est retournée, elle disparaît */
+}
+.carnet-page p { margin: 0; font-size: 2.3cqw; line-height: 3.4cqw; }
+.carnet-mdp {
+  margin-top: 3.4cqw !important;
+  font-size: 4.6cqw !important;
+  line-height: 6.8cqw !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  word-break: break-all;
+}
+
+/* Page 1 : se tourne autour de son bord gauche */
+.carnet-page-1 {
+  transform-origin: left center;
+  transition: transform 0.6s ease;
+  /* coin inférieur droit « corné » : on coupe le coin... */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9cqw), calc(100% - 9cqw) 100%, 0 100%);
+  outline: none;
+}
+/* ... et on dessine le coin replié */
+.carnet-coin {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 9cqw;
+  height: 9cqw;
+  background: linear-gradient(to bottom right, #e9db8c 50%, transparent 50%);
+}
+/* Survol (ou clavier : :focus-visible sur la page 1) : la page 1 se tourne et dévoile la page 2 */
+.carnet:hover .carnet-page-1,
+.carnet-page-1:focus-visible {
+  transform: rotateY(-160deg);
+}
+
+/* Bouton ✕ */
+.carnet-fermer {
+  position: absolute;
+  top: 1.2cqw;
+  right: 1.2cqw;
+  z-index: 5;
+  width: max(4.6cqw, 30px);
+  height: max(4.6cqw, 30px);
+  padding: 0;
+  font: inherit;
+  font-size: max(2.4cqw, 15px);
+  color: #243b8f;
+  cursor: pointer;
+  background: rgba(36, 59, 143, 0.1);
+  border: 0;
+  border-radius: 50%;
+}
+.carnet-fermer:hover { background: rgba(36, 59, 143, 0.2); }
+.carnet-fermer:focus-visible { outline: 2px solid #243b8f; outline-offset: 2px; }
+
+/* =====================================================
+   ÉTAPE 5 (provisoire) : une carte centrée
    ===================================================== */
 .etape-carte {
   min-height: 100vh;
@@ -502,6 +1415,19 @@
 @media (prefers-reduced-motion: reduce) {
   .toast { animation: none; }
   .carre,
-  .parametres { transition: none; }
+  .parametres,
+  .c-entree,
+  .c-bouton,
+  .r-bouton-rose,
+  .r-ligne,
+  .calepin,
+  .v-boutons button { transition: none; }
+  /* Sans animation : la page 2 du calepin apparaît simplement au survol */
+  .carnet-page-1 { transition: none; }
+  .bulle-calepin,
+  .carnet-fond,
+  .carnet,
+  .v-verifier.pret { animation: none; }
+  .calepin:not(:disabled):hover { transform: rotate(-2.5deg); }
   .service:hover .carre { transform: none; }
 }
