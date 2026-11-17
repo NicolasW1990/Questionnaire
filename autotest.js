@@ -55,11 +55,12 @@ const RESULTATS_EXTENSIONS = [
 // Le petit tiret devant chaque tâche est ajouté par le CSS.
 // Chaque tâche est un objet :
 //  - texte           : ce qui est écrit dans le calepin
-//  - barreDepuisEtape : la note est barrée à partir de cette étape (étape >= ce nombre) ; null = jamais barrée
+//  - estBarree      : une fonction ; la note est barrée quand cette fonction renvoie vrai (sinon elle ne l'est pas)
+//    (etapeCourante et extensionDejaEpinglee sont des variables définies plus bas, lues au moment de l'appel)
 const NOTES_CALEPIN = [
-  { texte: "Sécuriser mon compte en configurant la récupération", barreDepuisEtape: 7 },
-  { texte: "Ajouter l'extension SuiteSécurité", barreDepuisEtape: null },
-  { texte: "Migrer mes mdp sur SuiteSécurité", barreDepuisEtape: null }
+  { texte: "Sécuriser mon compte en configurant la récupération", estBarree: () => etapeCourante >= 7 },
+  { texte: "Ajouter l'extension SuiteSécurité", estBarree: () => extensionDejaEpinglee },
+  { texte: "Migrer mes mdp sur SuiteSécurité", estBarree: () => false }     // jamais barrée
 ];
 
 // ---------- LES RÉPONSES DU PERSONNAGE (étape 6, bulle de dialogue) ----------
@@ -561,8 +562,9 @@ function allerEtape(numero) {
   preparerExtensions(numero);
   // Page « Gestion des extensions » : tout remis à zéro à chaque arrivée sur l'étape 8
   preparerEtape8(numero === 8);
-  // Notes du calepin : barrées ou non selon l'étape (petit calepin ET calepin ouvert)
-  majNotes(numero, etapePrecedente);
+  // Notes du calepin : barrées ou non (petit calepin ET calepin ouvert) ; le trait ne s'anime que si l'on
+  // ARRIVE depuis l'étape juste avant (6 → 7) ; ailleurs (#7 direct, 7 → 8 → 9, retour de 10 à 9) il est déjà là
+  majNotes(numero === etapePrecedente + 1);
   // On garde l'étape dans l'adresse (#2 à #10), pour qu'un rechargement reste sur la même étape
   history.replaceState(null, "", numero === 1 ? location.pathname + location.search : "#" + numero);
 }
@@ -930,20 +932,19 @@ function remplirNotes(conteneur) {
 remplirNotes(document.getElementById("calepin-notes"));
 remplirNotes(document.getElementById("carnet-notes"));
 
-// Barre ou non chaque note d'après le numéro d'étape actuel (pas d'après un historique) :
-// barrée si étape >= barreDepuisEtape. Le trait ne s'anime que lorsqu'on ARRIVE sur cette étape
-// depuis l'étape juste avant (6 → 7) ; ailleurs (#7 direct, 7 → 8 → 9, retour de 10 à 9) il est déjà là, sans animation.
-function majNotes(numero, etapePrecedente) {
+// Barre ou non chaque note : une note est barrée quand sa fonction estBarree() renvoie vrai (état actuel, pas d'historique).
+// Appelée après chaque changement d'étape ET après le clic sur « Épingler à la barre d'outils » ; met à jour les deux calepins.
+// animer = true : une note qui PASSE de « non barrée » à « barrée » voit son trait se dessiner (≈ 0,6 s) ;
+// animer = false : le trait est déjà là, sans animation (par exemple arrivée directe sur une étape, ou clic sur « Détacher »).
+function majNotes(animer) {
   lignesNotes.forEach(function (element) {
-    const depuis = element.note.barreDepuisEtape;
-    const barre = depuis !== null && numero >= depuis;
+    const barre = element.note.estBarree();
     const dejaBarre = element.ligne.classList.contains("barre");
     if (barre === dejaBarre) return;              // rien ne change pour cette ligne
     if (!barre) {
       element.ligne.classList.remove("barre");
       return;
     }
-    const animer = (numero === depuis && etapePrecedente === depuis - 1);
     element.ligne.classList.toggle("instant", !animer);   // « instant » = sans animation
     void element.ligne.offsetWidth;               // astuce : le navigateur prend en compte l'état de départ
     element.ligne.classList.add("barre");
@@ -1295,6 +1296,10 @@ let minuteurBulleExt = null;                                         // minuteur
 // SuiteSécurité est-elle épinglée à la barre d'outils ? (remis à false quand on revient avant l'étape 9)
 let extensionEpinglee = false;
 
+// Devient vrai la 1ère fois qu'on épingle l'extension ; reste vrai même si on la détache ensuite.
+// (Remis à false comme extensionEpinglee : retour avant l'étape 9, ou rechargement.) Sert à barrer la 2e note du calepin.
+let extensionDejaEpinglee = false;
+
 // Le bouton puzzle est-il actif ? (aux étapes 7 et 9 seulement)
 function extensionsActives() {
   return boutonExt.getAttribute("aria-disabled") !== "true";
@@ -1366,6 +1371,10 @@ boutonOptions.addEventListener("click", function () {
 // « Épingler à la barre d'outils » / « Détacher de la barre d'outils » : le petit menu se ferme, le panneau reste ouvert
 boutonEpingler.addEventListener("click", function () {
   majEpingle(!extensionEpinglee);
+  if (extensionEpinglee) {                        // on vient d'épingler (pas de détacher) : la 2e note se barre, avec animation
+    extensionDejaEpinglee = true;
+    majNotes(true);
+  }
   fermerMenuExt(true);
 });
 
@@ -1399,7 +1408,10 @@ function preparerExtensions(numero) {
   boutonExt.setAttribute("aria-disabled", String(!actif));
   ligneSS.hidden = numero < 9;
   traitSS.hidden = numero < 9;
-  if (numero < 9) majEpingle(false);
+  if (numero < 9) {
+    majEpingle(false);
+    extensionDejaEpinglee = false;               // la 2e note du calepin n'est plus barrée (voir majNotes)
+  }
   if (actif) boutonExt.removeAttribute("tabindex");
   else boutonExt.tabIndex = -1;                  // décoratif : pas de focus clavier
   if (numero === 7) {
