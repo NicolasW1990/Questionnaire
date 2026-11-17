@@ -9,7 +9,10 @@
 //  - calepin : la liste « À faire » (NOTES_CALEPIN) s'affiche sur le petit calepin ET sur le calepin ouvert
 //  - étape 4 : FAUX champ (un <div>, pas un <input>) à saisie spéciale + calepin interactif ; « Vérifier » ouvre l'étape 5 (page e-mail de récupération)
 //  - étape 5 : choix de l'adresse de récupération ; « Ajouter » ouvre l'étape 6 (phrase de récupération)
-//  - étape 6 : téléchargement du PDF → fenêtre « Téléchargements » + bulles de dialogue ; la bonne réponse (réponse 2) ouvre l'étape 7 (provisoire)
+//  - étape 6 : téléchargement du PDF → fenêtre « Téléchargements » + bulles de dialogue ; la bonne réponse (réponse 2) se sélectionne, puis « Terminé » ouvre l'étape 7
+//  - étape 7 : page « Récupération » dans son état COMPLET (Fort 8/10) ; bulle de dialogue ; la suite (étape 8, provisoire)
+//    passe par l'icône puzzle de la barre d'adresse > « Gérer les extensions »
+//  - la page « Récupération » (étapes 3 et 7) est générée depuis ETATS_RECUPERATION : un objet de données par état
 // =====================================================
 
 // ---------- LE MOT DE PASSE (à changer ICI, à un seul endroit) ----------
@@ -21,24 +24,33 @@ const ADRESSE_PRIVEE = "lebgdeneuch@jedi.ch";          // choix 1 : adresse priv
 const ADRESSE_RECUP = "recup.adresse@jedi.ch";         // choix 2 : nouvelle adresse (écrite aussi dans le calepin)
 const MOT_DE_PASSE_RECUP = "R3cup!Jedi-47xQ";          // mot de passe de l'adresse de récupération (valeur provisoire, à remplacer par la valeur voulue)
 
+// ---------- DONNÉES FICTIVES de la page « Récupération » complète (étape 7) ----------
+const NUMERO_SMS = "+41 79 000 12 34";                 // faux numéro de téléphone
+const DATE_MODIF = "17 nov.";                           // date de « Dernière modification le … »
+
 // ---------- LES NOTES DU CALEPIN (page 1, à changer ICI) ----------
 // Une ligne par tâche. Le titre « À faire : » est ajouté par le code (voir remplirNotes plus bas).
 // Le petit tiret devant chaque tâche est ajouté par le CSS.
+// Chaque tâche est un objet :
+//  - texte           : ce qui est écrit dans le calepin
+//  - barreDepuisEtape : la note est barrée à partir de cette étape (étape >= ce nombre) ; null = jamais barrée
 const NOTES_CALEPIN = [
-  "Sécuriser mon compte en configurant la récupération",
-  "Ajouter l'extension SuiteSécurité",
-  "Migrer mes mdp sur SuiteSécurité"
+  { texte: "Sécuriser mon compte en configurant la récupération", barreDepuisEtape: 7 },
+  { texte: "Ajouter l'extension SuiteSécurité", barreDepuisEtape: null },
+  { texte: "Migrer mes mdp sur SuiteSécurité", barreDepuisEtape: null }
 ];
 
 // ---------- LES RÉPONSES DU PERSONNAGE (étape 6, bulle de dialogue) ----------
-// Chaque réponse a un texte et une « action » :
-//  - "suivant"       : la BONNE réponse : passe à l'étape 7
-//  - "mauvaise-idee" : affiche la 2e bulle « Non, c'est une mauvaise idée... »
-// Ici, la bonne réponse est la réponse 2 (le dossier « récup »).
+// Les réponses sont des choix sélectionnables (une seule à la fois, comme des boutons radio).
+// Chaque réponse a un texte et une « action » (elle devient toujours la réponse sélectionnée) :
+//  - "mauvaise-idee" : affiche en plus la 2e bulle « Non, c'est une mauvaise idée... »
+//  - "bonne-reponse" : ferme en plus la fenêtre Téléchargements (la bulle reste) et fait pulser « Terminé »
+// Aucune réponse ne change d'étape. La bonne réponse est la réponse 2 (le dossier « récup ») :
+// elle se sélectionne, puis un clic sur « Terminé » mène à l'étape 7.
 // Pour échanger les réponses, il suffit d'échanger les deux actions.
 const REPONSES_PDF = [
   { texte: "Je le laisse ici et ça ira", action: "mauvaise-idee" },
-  { texte: "Je le stocke dans un dossier Windows nommé « récup » que j'ai fait juste avant", action: "suivant" }
+  { texte: "Je le stocke dans un dossier Windows nommé « récup » que j'ai fait juste avant", action: "bonne-reponse" }
 ];
 
 // Choix fait à l'étape 5 : "privee" ou "nouvelle" (vide tant qu'on n'a rien choisi).
@@ -254,6 +266,45 @@ const MESSAGES = {
     "Je la copie, et après ? Je la colle sur un post-it ?"
   ],
 
+  // ----- Page « Récupération » complète (étape 7) -----
+  // (le menu, la grille, la recherche et « Premium » réutilisent les messages de la page Compte ;
+  //  « Sauvegarde » et « Contacts » réutilisent ceux de la page Récupération faible)
+  "menu-reduire": [
+    "Réduire le menu ? Je ne veux rien réduire du tout.",
+    "Réduire ? Je préfère que tout reste bien visible.",
+    "Cette petite flèche ne m'inspire pas confiance."
+  ],
+  "menu-parametres": [
+    "Les paramètres de l'application ? Je viens à peine de finir ceux du compte.",
+    "Encore des paramètres ? Laissez-moi souffler.",
+    "Les réglages de l'application attendront."
+  ],
+  "info-fort": [
+    "Fort ? Moi aussi, après un bon café.",
+    "Fort, fort... je reste prudent.",
+    "Fort ? Disons que je progresse."
+  ],
+  "examiner": [
+    "Examiner ? J'ai déjà passé ma matinée à ça.",
+    "Examiner encore ? Mes yeux demandent une pause.",
+    "Je les ai déjà examinées sous toutes les coutures."
+  ],
+  "verif-email-ok": [
+    "Mon e-mail de récupération est déjà là, inutile de le revérifier.",
+    "Mon e-mail est bien rangé, merci.",
+    "Revérifier ? Une fois par siècle, ça suffit."
+  ],
+  "verif-sms-ok": [
+    "Mon numéro est à jour... enfin, je crois.",
+    "Mon numéro ? Je ne l'ai jamais changé. Je crois.",
+    "Un SMS ? Mon téléphone dort encore."
+  ],
+  "fichier-recup-ok": [
+    "Mon PDF est quelque part... dans un dossier... normalement.",
+    "Le PDF ? Il doit traîner du côté de « Téléchargements ».",
+    "Mon PDF se cache très bien, c'est rassurant."
+  ],
+
   // ----- Fenêtre « Téléchargements » (étape 6) : les 4 autres fichiers -----
   "dl-facture": [
     "Ma facture du garage ? Pas maintenant, ça fait mal au portefeuille.",
@@ -294,11 +345,16 @@ const VUES = {
   recuperation: { onglet: "SuiteSécurité – Récupération", adresse: "https://suite-securite.example/compte/recuperation" },
   verification: { onglet: "SuiteSécurité – Vérification", adresse: "https://suite-securite.example/compte/recuperation/verification" },
   email: { onglet: "SuiteSécurité – E-mail de récupération", adresse: "https://suite-securite.example/compte/recuperation/email" },
-  phrase: { onglet: "SuiteSécurité – Phrase de récupération", adresse: "https://suite-securite.example/compte/recuperation/phrase" }
+  phrase: { onglet: "SuiteSécurité – Phrase de récupération", adresse: "https://suite-securite.example/compte/recuperation/phrase" },
+  // Même page « Récupération » que la vue « recuperation », mais dans son état « complet » (étape 7)
+  "recuperation-complet": { onglet: "SuiteSécurité – Récupération", adresse: "https://suite-securite.example/compte/recuperation" }
 };
 
-// Vue actuellement affichée (« accueil », « compte », « recuperation », « verification », « email » ou « phrase »)
+// Vue actuellement affichée (« accueil », « compte », « recuperation », « verification », « email », « phrase » ou « recuperation-complet »)
 let vueCourante = "accueil";
+
+// Numéro de l'étape actuelle (0 tant qu'aucune étape n'est affichée)
+let etapeCourante = 0;
 
 // Affiche une seule vue dans la zone de page web
 // et met à jour l'onglet et l'adresse du navigateur.
@@ -343,18 +399,22 @@ function dessinerProtection(bloc) {
 document.querySelectorAll(".v-protection").forEach(dessinerProtection);
 
 // Marque l'entrée de menu sélectionnée : « Accueil » sur la page compte,
-// « Récupération » sur la page récupération
+// « Récupération » sur la page récupération (faible ou complète)
 function marquerMenu(nom) {
   document.querySelectorAll(".c-entree").forEach(function (entree) {
-    entree.classList.toggle("actif", entree.dataset.vueMenu === nom);
+    // data-vue-menu peut contenir plusieurs vues : « recuperation recuperation-complet »
+    entree.classList.toggle("actif", (entree.dataset.vueMenu || "").split(" ").includes(nom));
   });
 }
 
 // ---------- CHANGER D'ÉTAPE ----------
 // Étape 1 = bureau + vue « accueil » ; étape 2 = le MÊME bureau + vue « compte » ;
 // étape 3 = le MÊME bureau + vue « recuperation » ; étape 4 = le MÊME bureau + vue « verification » ;
-// étape 5 = le MÊME bureau + vue « email » ; étape 6 = le MÊME bureau + vue « phrase » ; étape 7 = carte provisoire. Chaque <section> déclare ses étapes dans data-etapes.
+// étape 5 = le MÊME bureau + vue « email » ; étape 6 = le MÊME bureau + vue « phrase » ; étape 7 = le MÊME bureau + page « Récupération » complète ;
+// étape 8 = carte provisoire. Chaque <section> déclare ses étapes dans data-etapes.
 function allerEtape(numero) {
+  const etapePrecedente = etapeCourante;        // d'où l'on vient (0 au démarrage)
+  etapeCourante = numero;
   etapes.forEach(function (section) {
     const siennes = section.dataset.etapes.split(" ");
     section.hidden = !siennes.includes(String(numero));
@@ -365,6 +425,7 @@ function allerEtape(numero) {
   if (numero === 4) afficherVue("verification");
   if (numero === 5) afficherVue("email");
   if (numero === 6) afficherVue("phrase");
+  if (numero === 7) afficherVue("recuperation-complet");
   cacherMessage();
   // Bulle, calepin et champ du mot de passe : actifs seulement à l'étape 4 (remis à zéro à chaque arrivée)
   preparerEtape4(numero === 4);
@@ -372,14 +433,20 @@ function allerEtape(numero) {
   if (numero === 5) preparerEtape5();
   // Fenêtre Téléchargements, bulles et bouton de téléchargement : actifs seulement à l'étape 6 (remis à zéro à chaque arrivée)
   preparerEtape6(numero === 6);
-  // On garde l'étape dans l'adresse (#2 à #7), pour qu'un rechargement reste sur la même étape
+  // Page « Récupération » complète : adresse à jour et défilement en haut à chaque arrivée sur l'étape 7
+  if (numero === 7) preparerEtape7();
+  // Étape 7 : bulle de dialogue (après le trait barré) et bouton puzzle actif ; ailleurs : bulle et panneau fermés
+  preparerExtensions(numero === 7);
+  // Notes du calepin : barrées ou non selon l'étape (petit calepin ET calepin ouvert)
+  majNotes(numero, etapePrecedente);
+  // On garde l'étape dans l'adresse (#2 à #8), pour qu'un rechargement reste sur la même étape
   history.replaceState(null, "", numero === 1 ? location.pathname + location.search : "#" + numero);
 }
 
-// Lit l'adresse : « autotest.html#2 » à « #7 » ouvre cette étape, sinon étape 1
+// Lit l'adresse : « autotest.html#2 » à « #8 » ouvre cette étape, sinon étape 1
 function etapeDepuisAdresse() {
   const numero = Number(location.hash.slice(1));
-  return [2, 3, 4, 5, 6, 7].includes(numero) ? numero : 1;
+  return [2, 3, 4, 5, 6, 7, 8].includes(numero) ? numero : 1;
 }
 
 // ---------- LES MESSAGES HUMORISTIQUES ----------
@@ -409,6 +476,238 @@ function cacherMessage() {
   toast.hidden = true;
 }
 
+// =====================================================
+//  LA PAGE « RÉCUPÉRATION » : UN ÉTAT = UN OBJET DE DONNÉES
+//  « faible » = étape 3 (3/10, rouge) ; « complet » = étape 7 (8/10, vert).
+//  La mise en page est la même : construireRecuperation() fabrique les éléments à partir des données.
+// =====================================================
+
+// Petits dessins (SVG génériques) réutilisés par les lignes
+const ICONES = {
+  enveloppe: '<svg class="r-icone" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+  telephone: '<svg class="r-icone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
+  appareil: '<svg class="r-icone" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+  fichier: '<svg class="r-icone" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>',
+  contacts: '<svg class="r-icone" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M17 11a3 3 0 1 0 0-6M19 14c2 .5 3 2.5 3 5"/></svg>'
+};
+const SVG_FLECHE = '<svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+const SVG_BOUCLIER = '<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V5z"/></svg>';
+const SVG_INFO = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>';
+const SVG_ALERTE = '<svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>';
+const SVG_COCHE = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
+const SVG_BANDEAU = '<svg viewBox="0 0 24 24"><path d="M12 11v6M12 7.5v.01"/></svg>';
+
+// Textes communs aux deux états
+const INTRO_RECUP = "Le chiffrement de bout en bout de SuiteSécurité signifie que seul vous pouvez déverrouiller vos données. Configurez des options de récupération afin de ne jamais perdre vos accès.";
+const TEXTE_REINIT = "Ceci permet de récupérer les accès à votre compte SuiteSécurité mais ne permet de récupérer vos données chiffrées.";
+const TEXTE_DONNEES = "Comment déverrouiller mes données chiffrées si je perds mon mot de passe.";
+
+// L'adresse e-mail de récupération affichée : celle choisie à l'étape 5 (ADRESSE_RECUP si rien n'est choisi)
+function adresseRecuperation() {
+  return choixAdresseRecup === "privee" ? ADRESSE_PRIVEE : ADRESSE_RECUP;
+}
+
+// Les données de chaque état. Une ligne = { icone, nom, msg } + soit une « pastille » (statut), soit une « valeur » + « date ».
+const ETATS_RECUPERATION = {
+  // ----- Étape 3 : récupération faible (rouge, 3/10, bandeau beige) -----
+  faible: {
+    classe: "r-etat-faible",
+    capacite: {
+      bouclier: "3/10", niveau: "Faible", msgInfo: "info-faible",
+      remplis: 3, classeSegment: "rouge",
+      titre: "Évitez toute perte de données en prenant quelques précautions.",
+      texte: "Votre configuration de récupération est incomplète. Si vous oubliez votre mot de passe, vous risquez toujours de ne plus pouvoir accéder à vos e-mails, à vos fichiers et à vos mots de passe.",
+      // SEUL bouton qui change de page : étape 4
+      bouton: { texte: "Ajouter des méthodes de récupération", classe: "r-bouton-rose", id: "btn-methodes" }
+    },
+    reinit: {
+      titre: "Options de réinitialisation du mot de passe",
+      lignes: [
+        { icone: "enveloppe", nom: "Vérification par e-mail", msg: "verif-email",
+          pastille: { classe: "r-orange", picto: SVG_ALERTE, texte: "Ajouter une adresse e-mail" } },
+        { icone: "telephone", nom: "Vérification SMS", msg: "verif-sms",
+          pastille: { classe: "r-orange", picto: SVG_ALERTE, texte: "Ajouter un numéro de téléphone" } }
+      ]
+    },
+    donnees: {
+      titre: "Options de récupération de données",
+      bandeau: { texte: "La récupération des données nécessite une option de réinitialisation du mot de passe (e-mail ou SMS).", bouton: "Ajouter une option", msg: "ajouter-option" },
+      lignes: [
+        { icone: "appareil", nom: "Sauvegarde des données de l'appareil", msg: "sauvegarde-appareil",
+          pastille: { classe: "r-bleu", picto: SVG_COCHE, texte: "Activée" } },
+        { icone: "fichier", nom: "Fichier de récupération", msg: "fichier-recup",
+          pastille: { classe: "r-orange", picto: SVG_ALERTE, texte: "Non enregistré" } },
+        { icone: "contacts", nom: "Contacts de récupération des données", msg: "contacts-recup",
+          pastille: { classe: "r-orange", picto: SVG_ALERTE, texte: "Ajouter un contact de récupération" } }
+      ]
+    }
+  },
+
+  // ----- Étape 7 : récupération complète (vert, 8/10, pas de bandeau) -----
+  complet: {
+    classe: "r-etat-fort",
+    capacite: {
+      bouclier: "8/10", niveau: "Fort", msgInfo: "info-fort",
+      remplis: 8, classeSegment: "vert",
+      titre: "Vérifiez si vous avez accès à vos options de récupération",
+      texte: "Votre configuration de récupération est excellente. Veillez à maintenir vos options à jour afin qu'elles fonctionnent toujours lorsque vous en aurez besoin.",
+      // (Rien ici ne change d'étape : la suite passe par l'icône puzzle de la barre d'adresse > « Gérer les extensions »)
+      bouton: { texte: "Examiner les options de récupération", classe: "r-bouton-vert", msg: "examiner" }
+    },
+    reinit: {
+      titre: "Options de réinitialisation du mot de passe",
+      lignes: [
+        // « valeur » est une fonction : l'adresse dépend du choix fait à l'étape 5
+        { icone: "enveloppe", nom: "Vérification par e-mail", msg: "verif-email-ok",
+          valeur: adresseRecuperation, date: "Dernière modification le " + DATE_MODIF },
+        { icone: "telephone", nom: "Vérification SMS", msg: "verif-sms-ok",
+          valeur: function () { return NUMERO_SMS; }, date: "Dernière modification le " + DATE_MODIF }
+      ]
+    },
+    donnees: {
+      titre: "Options de récupération de données",
+      bandeau: null,                                       // pas de bandeau beige dans cet état
+      lignes: [
+        { icone: "appareil", nom: "Sauvegarde des données de l'appareil", msg: "sauvegarde-appareil",
+          pastille: { classe: "r-bleu", picto: SVG_COCHE, texte: "Activée" } },
+        { icone: "fichier", nom: "Fichier de récupération", msg: "fichier-recup-ok",
+          pastille: { classe: "r-bleu", picto: SVG_COCHE, texte: "Enregistré" } },
+        { icone: "contacts", nom: "Contacts de récupération des données", msg: "contacts-recup",
+          pastille: { classe: "r-orange", picto: SVG_ALERTE, texte: "Ajouter un contact de récupération" } }
+      ]
+    }
+  }
+};
+
+// Les valeurs qui peuvent changer (l'adresse e-mail) : [élément, fonction]
+const valeursRecuperation = [];
+
+// Crée un élément avec une classe et un texte (le texte est optionnel)
+function creer(balise, classe, texte) {
+  const element = document.createElement(balise);
+  if (classe) element.className = classe;
+  if (texte !== undefined) element.textContent = texte;
+  return element;
+}
+
+// Transforme un petit SVG écrit à la main (constantes ci-dessus) en élément
+function creerSvg(codeSvg) {
+  const modele = document.createElement("template");
+  modele.innerHTML = codeSvg;
+  return modele.content.firstChild;
+}
+
+// Fabrique une ligne cliquable (bouton .r-ligne) à partir d'un objet de données
+function creerLigne(donnees) {
+  const ligne = creer("button", "r-ligne");
+  ligne.type = "button";
+  ligne.dataset.msg = donnees.msg;                         // message humoristique au clic
+  ligne.appendChild(creerSvg(ICONES[donnees.icone]));
+  ligne.appendChild(creer("span", "r-nom", donnees.nom));
+  if (donnees.pastille) {
+    // Pastille de statut (coche bleue, alerte orange…)
+    const pastille = creer("span", "r-pastille " + donnees.pastille.classe);
+    pastille.appendChild(creerSvg(donnees.pastille.picto));
+    pastille.appendChild(document.createTextNode(donnees.pastille.texte));
+    ligne.appendChild(pastille);
+  } else {
+    // Valeur (à partir de la moitié de la carte) + date en petit gris
+    ligne.classList.add("r-ligne-valeur");
+    const valeur = creer("span", "r-valeur", donnees.valeur());
+    valeursRecuperation.push([valeur, donnees.valeur]);
+    ligne.appendChild(valeur);
+    ligne.appendChild(creer("span", "r-date", donnees.date));
+  }
+  ligne.appendChild(creerSvg(SVG_FLECHE));
+  return ligne;
+}
+
+// Fabrique toute la page « Récupération » d'un état dans le conteneur donné
+function construireRecuperation(nomEtat, conteneur) {
+  const etat = ETATS_RECUPERATION[nomEtat];
+  const cap = etat.capacite;
+  conteneur.classList.add(etat.classe);
+
+  // 1. Titre + paragraphe
+  conteneur.appendChild(creer("h2", "r-titre", "Récupération"));
+  conteneur.appendChild(creer("p", "r-intro", INTRO_RECUP));
+
+  // 2. Carte « Capacité de récupération » : en-tête (bouclier, titre, niveau, barre de 10 segments)
+  const carte = creer("section", "r-carte");
+  const entete = creer("div", "r-entete");
+  const bouclier = creer("span", "r-bouclier");
+  bouclier.setAttribute("aria-hidden", "true");
+  bouclier.appendChild(creerSvg(SVG_BOUCLIER));
+  bouclier.appendChild(creer("b", "", cap.bouclier));
+  entete.appendChild(bouclier);
+  entete.appendChild(creer("strong", "r-cap-titre", "Capacité de récupération"));
+  const niveau = creer("span", "r-faible");              // (« r-faible » sert aussi pour « Fort » : la couleur change avec l'état)
+  niveau.appendChild(document.createTextNode(cap.niveau));
+  const info = creer("button", "c-info r-info");
+  info.type = "button";
+  info.dataset.msg = cap.msgInfo;
+  info.setAttribute("aria-label", "Information");
+  info.appendChild(creerSvg(SVG_INFO));
+  niveau.appendChild(info);
+  entete.appendChild(niveau);
+  const segments = creer("div", "r-segments");
+  segments.setAttribute("aria-hidden", "true");
+  for (let i = 0; i < 10; i++) {
+    segments.appendChild(creer("span", i < cap.remplis ? cap.classeSegment : ""));
+  }
+  entete.appendChild(segments);
+  carte.appendChild(entete);
+
+  // Corps de la carte : phrase en gras, texte gris, bouton
+  const corps = creer("div", "r-corps");
+  corps.appendChild(creer("strong", "", cap.titre));
+  corps.appendChild(creer("p", "r-gris", cap.texte));
+  const bouton = creer("button", cap.bouton.classe, cap.bouton.texte);
+  bouton.type = "button";
+  if (cap.bouton.id) bouton.id = cap.bouton.id;
+  if (cap.bouton.msg) bouton.dataset.msg = cap.bouton.msg;
+  corps.appendChild(bouton);
+  carte.appendChild(corps);
+  conteneur.appendChild(carte);
+
+  // 3. Options de réinitialisation du mot de passe
+  conteneur.appendChild(creer("h3", "r-section", etat.reinit.titre));
+  conteneur.appendChild(creer("p", "r-gris r-section-texte", TEXTE_REINIT));
+  const carteReinit = creer("div", "r-carte");
+  etat.reinit.lignes.forEach(function (ligne) { carteReinit.appendChild(creerLigne(ligne)); });
+  conteneur.appendChild(carteReinit);
+
+  // 4. Options de récupération de données (avec le bandeau beige seulement si l'état en a un)
+  conteneur.appendChild(creer("h3", "r-section", etat.donnees.titre));
+  conteneur.appendChild(creer("p", "r-gris r-section-texte", TEXTE_DONNEES));
+  const carteDonnees = creer("div", "r-carte");
+  const bandeau = etat.donnees.bandeau;
+  if (bandeau) {
+    const zone = creer("div", "r-bandeau");
+    const icone = creer("span", "r-bandeau-icone");
+    icone.setAttribute("aria-hidden", "true");
+    icone.appendChild(creerSvg(SVG_BANDEAU));
+    zone.appendChild(icone);
+    zone.appendChild(creer("p", "", bandeau.texte));
+    const boutonBandeau = creer("button", "r-bouton-blanc", bandeau.bouton);
+    boutonBandeau.type = "button";
+    boutonBandeau.dataset.msg = bandeau.msg;
+    zone.appendChild(boutonBandeau);
+    carteDonnees.appendChild(zone);
+  }
+  etat.donnees.lignes.forEach(function (ligne) { carteDonnees.appendChild(creerLigne(ligne)); });
+  conteneur.appendChild(carteDonnees);
+}
+
+// On construit les deux états AVANT de brancher les messages (voir plus bas), pour que leurs boutons réagissent aussi
+construireRecuperation("faible", document.getElementById("r-colonne-faible"));
+construireRecuperation("complet", document.getElementById("r-colonne-complet"));
+
+// Met à jour les valeurs qui dépendent d'un choix (l'adresse e-mail choisie à l'étape 5)
+function majValeursRecuperation() {
+  valeursRecuperation.forEach(function (paire) { paire[0].textContent = paire[1](); });
+}
+
 // ---------- BRANCHEMENT DES BOUTONS ----------
 // Tous les éléments qui affichent un message :
 //  - les 10 services de l'accueil (attribut data-service)
@@ -434,7 +733,7 @@ document.getElementById("c-recherche").addEventListener("focus", function (e) {
 // (sauf si on clique sur un élément à message : lui il affiche un nouveau message)
 // (« Récupération » du menu est aussi un élément à message quand on est déjà sur sa page)
 document.addEventListener("click", function (e) {
-  if (!e.target.closest(ELEMENTS_A_MESSAGE + ", #btn-recuperation")) cacherMessage();
+  if (!e.target.closest(ELEMENTS_A_MESSAGE + ", #btn-recuperation, #btn-terminer")) cacherMessage();
 });
 
 // « Paramètres » (page des services) : le seul bouton sans message, il ouvre l'étape 2
@@ -446,7 +745,7 @@ document.getElementById("btn-parametres").addEventListener("click", function () 
 //  - depuis la page Compte, ouvre la page Récupération (étape 3)
 //  - depuis la page Récupération (déjà sélectionnée), affiche un message
 document.getElementById("btn-recuperation").addEventListener("click", function () {
-  if (vueCourante === "recuperation") {
+  if (vueCourante.startsWith("recuperation")) {      // déjà sur la page Récupération (faible ou complète)
     afficherMessage(choisirMessage("recup-ici"));
   } else {
     allerEtape(3);
@@ -459,9 +758,9 @@ document.getElementById("btn-methodes").addEventListener("click", function () {
   allerEtape(4);
 });
 
-// « Retour au bureau » (étape 7) : retour à l'étape 6 (la page phrase, remise à zéro)
+// « Retour au bureau » (étape 8) : retour à l'étape 7 (la page « Récupération » complète)
 document.getElementById("btn-retour-bureau").addEventListener("click", function () {
-  allerEtape(6);
+  allerEtape(7);
 });
 
 // =====================================================
@@ -484,20 +783,48 @@ let masque = true;
 
 // Écrit la liste « À faire » (titre + une ligne par tâche) dans un élément.
 // Sert pour le petit calepin ET pour la page 1 du calepin ouvert : même contenu partout.
+// Les lignes créées (des deux calepins), avec leur note : majNotes s'en sert pour les barrer
+const lignesNotes = [];
+
 function remplirNotes(conteneur) {
   const titre = document.createElement("span");
   titre.className = "notes-titre";
   titre.textContent = "À faire :";
   conteneur.appendChild(titre);
-  NOTES_CALEPIN.forEach(function (texte) {
+  NOTES_CALEPIN.forEach(function (note) {
     const ligne = document.createElement("span");
     ligne.className = "notes-ligne";
-    ligne.textContent = texte;
+    // Le texte est dans un <span> à part : le trait suit le texte, même sur 2 lignes
+    const texte = document.createElement("span");
+    texte.className = "notes-texte";
+    texte.textContent = note.texte;
+    ligne.appendChild(texte);
     conteneur.appendChild(ligne);
+    lignesNotes.push({ ligne: ligne, note: note });
   });
 }
 remplirNotes(document.getElementById("calepin-notes"));
 remplirNotes(document.getElementById("carnet-notes"));
+
+// Barre ou non chaque note d'après le numéro d'étape actuel (pas d'après un historique) :
+// barrée si étape >= barreDepuisEtape. Le trait ne s'anime que lorsqu'on ARRIVE sur cette étape
+// depuis l'étape juste avant (6 → 7) ; ailleurs (#7 direct, 7 → 8, retour de 8 à 7) il est déjà là, sans animation.
+function majNotes(numero, etapePrecedente) {
+  lignesNotes.forEach(function (element) {
+    const depuis = element.note.barreDepuisEtape;
+    const barre = depuis !== null && numero >= depuis;
+    const dejaBarre = element.ligne.classList.contains("barre");
+    if (barre === dejaBarre) return;              // rien ne change pour cette ligne
+    if (!barre) {
+      element.ligne.classList.remove("barre");
+      return;
+    }
+    const animer = (numero === depuis && etapePrecedente === depuis - 1);
+    element.ligne.classList.toggle("instant", !animer);   // « instant » = sans animation
+    void element.ligne.offsetWidth;               // astuce : le navigateur prend en compte l'état de départ
+    element.ligne.classList.add("barre");
+  });
+}
 
 // On écrit les valeurs dans le calepin (page 2) depuis les constantes
 document.getElementById("carnet-mdp").textContent = MOT_DE_PASSE;
@@ -665,26 +992,78 @@ const bullePdf = document.getElementById("bulle-pdf");             // 1re bulle 
 const bulleMauvaise = document.getElementById("bulle-mauvaise");   // 2e bulle : « mauvaise idée »
 const bulleReponses = document.getElementById("bulle-reponses");   // les boutons de réponse
 
-// Minuteurs : fin de l'animation du bouton rond, et disparition de la 2e bulle
+const btnTerminer = document.getElementById("btn-terminer");       // le bouton « Terminé » de la page web
+
+// Minuteurs : fin de l'animation du bouton rond, disparition de la 2e bulle, fermeture automatique de la fenêtre
 let minuteurDl = null;
 let minuteurBulle = null;
+let minuteurFermeture = null;
 
-// Ce que fait chaque « action » des réponses (voir REPONSES_PDF)
+// Réponse actuellement sélectionnée (un objet de REPONSES_PDF), ou null si aucune
+let reponseChoisie = null;
+// Les boutons de réponse, dans le même ordre que REPONSES_PDF
+const boutonsReponse = [];
+
+// Ce que fait chaque « action » des réponses (voir REPONSES_PDF). Aucune ne change d'étape.
 const ACTIONS_REPONSE = {
-  "suivant": function () { allerEtape(7); },
-  "mauvaise-idee": function () { afficherMauvaiseIdee(); }
+  "mauvaise-idee": function () {
+    afficherMauvaiseIdee();
+  },
+  "bonne-reponse": function () {
+    // On ferme la fenêtre après 0,6 s pour dégager « Terminé » ; la bulle, elle, reste affichée
+    minuteurFermeture = setTimeout(masquerFenetreDl, 600);
+    // « Terminé » fait une petite pulsation (une seule fois) pour montrer qu'il est prêt
+    btnTerminer.classList.remove("pret");
+    void btnTerminer.offsetWidth;               // astuce : rejoue l'animation
+    btnTerminer.classList.add("pret");
+  }
 };
 
-// On crée les boutons de réponse à partir du tableau REPONSES_PDF
+// Sélectionne une réponse (une seule à la fois) ; null = on efface la sélection
+function choisirReponse(reponse) {
+  clearTimeout(minuteurFermeture);              // on change de réponse : plus de fermeture automatique
+  reponseChoisie = reponse;
+  boutonsReponse.forEach(function (bouton, i) {
+    bouton.setAttribute("aria-checked", String(REPONSES_PDF[i] === reponse));
+  });
+  if (!reponse || reponse.action !== "bonne-reponse") btnTerminer.classList.remove("pret");
+}
+
+// On crée les boutons de réponse à partir du tableau REPONSES_PDF (groupe de type « bouton radio »)
 REPONSES_PDF.forEach(function (reponse) {
   const bouton = document.createElement("button");
   bouton.type = "button";
   bouton.className = "bulle-reponse";
+  bouton.setAttribute("role", "radio");
+  bouton.setAttribute("aria-checked", "false");
   bouton.textContent = reponse.texte;
   bouton.addEventListener("click", function () {
+    choisirReponse(reponse);                    // la dernière réponse cliquée est la sélectionnée
     ACTIONS_REPONSE[reponse.action]();
   });
+  // Clavier : Tab/Entrée/Espace comme un bouton, et les flèches passent d'une réponse à l'autre
+  bouton.addEventListener("keydown", function (e) {
+    const i = boutonsReponse.indexOf(bouton);
+    let suivant = -1;
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") suivant = (i + 1) % boutonsReponse.length;
+    if (e.key === "ArrowUp" || e.key === "ArrowLeft") suivant = (i - 1 + boutonsReponse.length) % boutonsReponse.length;
+    if (suivant >= 0) {
+      e.preventDefault();
+      boutonsReponse[suivant].focus();
+    }
+  });
+  boutonsReponse.push(bouton);
   bulleReponses.appendChild(bouton);
+});
+
+// « Terminé » : si la bonne réponse (réponse 2) est sélectionnée → étape 7 ;
+// sinon → message humoristique (il ne change pas d'étape et n'est jamais désactivé)
+btnTerminer.addEventListener("click", function () {
+  if (reponseChoisie && reponseChoisie.action === "bonne-reponse") {
+    allerEtape(7);
+  } else {
+    afficherMessage(choisirMessage("phrase-termine"));
+  }
 });
 
 // 2e bulle : apparaît sous la première, puis disparaît seule après 3,5 secondes
@@ -703,12 +1082,18 @@ function ouvrirFenetreDl() {
   dlLignes[0].focus();                          // le clavier arrive sur le 1er fichier
 }
 
-// Ferme la fenêtre ET les bulles
-function fermerFenetreDl() {
+// Cache seulement la fenêtre (utilisé par la fermeture automatique : les bulles restent affichées)
+function masquerFenetreDl() {
   dlFond.hidden = true;
   dlFenetre.hidden = true;
   tacheDl.hidden = true;
+}
+
+// Bouton ✕ : ferme la fenêtre ET les bulles, et efface la sélection de réponse
+function fermerFenetreDl() {
+  masquerFenetreDl();
   clearTimeout(minuteurBulle);
+  choisirReponse(null);
   bullePdf.hidden = true;
   bulleMauvaise.hidden = true;
   dlLignes.forEach(function (ligne) { ligne.classList.remove("selection"); });
@@ -752,6 +1137,90 @@ function preparerEtape6(actif) {
   fermerFenetreDl();                            // fenêtre fermée, bulles masquées
   rondDl.dataset.etat = "initial";              // bouton de téléchargement : flèche
   if (actif) document.getElementById("vue-phrase").scrollTop = 0;
+}
+
+// =====================================================
+//  ÉTAPE 7 : PAGE « RÉCUPÉRATION » COMPLÈTE
+// =====================================================
+// Dans la page elle-même, AUCUN élément ne mène à une autre étape : tout affiche un message humoristique.
+// La suite passe par le navigateur : icône puzzle (barre d'adresse) > « Gérer les extensions » > étape 8.
+
+// Prépare l'étape 7 (appelée par allerEtape à chaque arrivée) :
+// l'adresse affichée suit le choix de l'étape 5, et la page remonte tout en haut.
+// (La fenêtre Téléchargements et les bulles sont déjà fermées par preparerEtape6(false).)
+function preparerEtape7() {
+  majValeursRecuperation();
+  document.querySelector('.c-contenu[data-sous="recuperation-complet"] .r-defile').scrollTop = 0;
+}
+
+// ---------- Bulle de dialogue, bouton puzzle « Extensions » et son panneau (étape 7) ----------
+const bulleExtension = document.getElementById("bulle-extension");   // bulle « Je dois ajouter l'extension… »
+const boutonExt = document.getElementById("btn-extensions");         // bouton puzzle (barre d'adresse)
+const panneauExt = document.getElementById("ext-panneau");           // petit panneau déroulant
+const boutonGerer = document.getElementById("btn-gerer-ext");        // son entrée « Gérer les extensions »
+let minuteurBulleExt = null;                                         // minuteur : apparition de la bulle
+
+// Le bouton puzzle est-il actif ? (seulement à l'étape 7)
+function extensionsActives() {
+  return boutonExt.getAttribute("aria-disabled") !== "true";
+}
+
+function panneauExtOuvert() {
+  return !panneauExt.hidden;
+}
+
+function ouvrirPanneauExt() {
+  panneauExt.hidden = false;
+  boutonExt.setAttribute("aria-expanded", "true");
+  boutonGerer.focus();                           // le clavier arrive sur l'entrée du panneau
+}
+
+// Ferme le panneau ; redonnerFocus = true → le focus retourne sur le bouton puzzle
+function fermerPanneauExt(redonnerFocus) {
+  panneauExt.hidden = true;
+  boutonExt.setAttribute("aria-expanded", "false");
+  if (redonnerFocus) boutonExt.focus();
+}
+
+// Clic sur le bouton puzzle : ouvre le panneau, ou le ferme au 2e clic (rien aux autres étapes)
+boutonExt.addEventListener("click", function () {
+  if (!extensionsActives()) return;
+  if (panneauExtOuvert()) fermerPanneauExt(true);
+  else ouvrirPanneauExt();
+});
+
+// « Gérer les extensions » : ferme le panneau puis passe à l'étape 8 (page provisoire)
+boutonGerer.addEventListener("click", function () {
+  fermerPanneauExt(true);
+  allerEtape(8);
+});
+
+// Clic ailleurs : le panneau se ferme (le focus reste là où l'on a cliqué)
+document.addEventListener("click", function (e) {
+  if (panneauExtOuvert() && !e.target.closest(".ext-zone")) fermerPanneauExt(false);
+});
+
+// Touche Échap : le panneau se ferme et le focus revient sur le bouton puzzle
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" && panneauExtOuvert()) fermerPanneauExt(true);
+});
+
+// Prépare l'étape 7 pour la bulle et le bouton puzzle (appelée par allerEtape à chaque changement d'étape) :
+// actif = true → bouton actif, panneau fermé, la bulle apparaît 0,8 s plus tard (le trait du calepin a fini de se dessiner)
+// actif = false → bouton décoratif, panneau et bulle cachés
+function preparerExtensions(actif) {
+  clearTimeout(minuteurBulleExt);
+  bulleExtension.hidden = true;
+  fermerPanneauExt(false);
+  boutonExt.setAttribute("aria-disabled", String(!actif));
+  if (actif) {
+    boutonExt.removeAttribute("tabindex");
+    // Comme à l'étape 4, la colonne de gauche réserve de la place en haut pour la bulle (utile sur les écrans courts)
+    document.getElementById("etape-bureau").classList.add("avec-bulle");
+    minuteurBulleExt = setTimeout(function () { bulleExtension.hidden = false; }, 800);
+  } else {
+    boutonExt.tabIndex = -1;                     // décoratif : pas de focus clavier
+  }
 }
 
 // Si on modifie le # dans l'adresse, on change d'étape

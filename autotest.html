@@ -16,8 +16,8 @@
   <!-- ===================================================== -->
   <!--  ÉTAPE 1 : le faux bureau d'ordinateur                -->
   <!-- ===================================================== -->
-  <!-- Ce bureau sert pour les étapes 1 à 6 : seule la page web dans le navigateur change -->
-  <section class="etape bureau" id="etape-bureau" data-etapes="1 2 3 4 5 6">
+  <!-- Ce bureau sert pour les étapes 1 à 7 : seule la page web dans le navigateur change -->
+  <section class="etape bureau" id="etape-bureau" data-etapes="1 2 3 4 5 6 7">
 
     <!-- Petit lien discret pour revenir à l'accueil (en haut à gauche) -->
     <a class="lien-accueil-bureau" href="accueil.html">← Accueil</a>
@@ -67,11 +67,28 @@
       </div>
 
       <!-- Barre d'adresse : cadenas + adresse -->
-      <div class="fenetre-adresse" aria-hidden="true">
-        <span class="adresse">
+      <div class="fenetre-adresse">
+        <span class="adresse" aria-hidden="true">
           <svg viewBox="0 0 24 24" class="cadenas"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
           <span id="adresse-texte">https://suite-securite.example</span>
         </span>
+
+        <!-- Bouton « Extensions » (pièce de puzzle), à droite de la barre d'adresse.
+             Visible à toutes les étapes, mais actif seulement à l'étape 7 (voir preparerExtensions dans autotest.js) -->
+        <div class="ext-zone">
+          <button type="button" class="ext-bouton" id="btn-extensions" aria-label="Extensions"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="ext-panneau" aria-disabled="true" tabindex="-1">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg>
+          </button>
+          <!-- Petit panneau (étape 7) : un titre, un trait fin et une seule entrée -->
+          <div class="ext-panneau" id="ext-panneau" role="group" aria-label="Extensions" hidden>
+            <p class="ext-titre">Extensions</p>
+            <button type="button" class="ext-entree" id="btn-gerer-ext">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke-dasharray="2.6 2.6" stroke-width="3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2.5"/></svg>
+              Gérer les extensions
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Zone de la page web simulée -->
@@ -165,11 +182,11 @@
 
         </div> <!-- fin de la vue « accueil » -->
 
-        <!-- ===== VUES 2 et 3 : pages « Compte » (étape 2) et « Récupération » (étape 3) ===== -->
+        <!-- ===== VUES 2, 3 et 7 : pages « Compte » (étape 2) et « Récupération » (étapes 3 et 7) ===== -->
         <!-- Le menu de gauche et la barre du haut sont COMMUNS aux deux pages :
              seul le contenu (.c-contenu) change, selon data-sous. -->
         <!-- Tout est placé en % (position) et en cqw (tailles) pour garder les proportions -->
-        <div class="vue vue-compte" data-vues="compte recuperation" hidden>
+        <div class="vue vue-compte" data-vues="compte recuperation recuperation-complet" hidden>
           <div class="c-page">
 
             <!-- Menu latéral gauche -->
@@ -194,7 +211,7 @@
               </button>
               <!-- « Récupération » : depuis la page Compte, ouvre la page Récupération (étape 3) ;
                    quand on y est déjà, affiche un message -->
-              <button type="button" class="c-entree" id="btn-recuperation" data-vue-menu="recuperation">
+              <button type="button" class="c-entree" id="btn-recuperation" data-vue-menu="recuperation recuperation-complet">
                 <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v4h4"/></svg><span>Récupération</span>
                 <span class="c-point" aria-hidden="true"></span>
               </button>
@@ -213,6 +230,14 @@
               <button type="button" class="c-entree" data-msg="menu-parrainer">
                 <svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M12 9v12M3 13h18M12 9C9 9 8 4 11 4c2 0 1 5 1 5zM12 9c3 0 4-5 1-5-2 0-1 5-1 5z"/></svg><span>Parrainer un ami</span>
               </button>
+
+              <!-- Bas du menu (collé au bord inférieur) : petite flèche, lien, barre de stockage et chiffres -->
+              <div class="c-menu-bas">
+                <button type="button" class="c-menu-fleche" data-msg="menu-reduire" aria-label="Réduire le menu">▸</button>
+                <button type="button" class="c-menu-lien" data-msg="menu-parametres">Paramètres de l'application</button>
+                <div class="c-stockage" aria-hidden="true"><span class="c-stockage-plein"></span></div>
+                <div class="c-stockage-texte" aria-hidden="true"><span>1.20 Go / 5.00 Go</span><span>1.0.0</span></div>
+              </div>
             </nav>
 
             <!-- Barre du haut -->
@@ -325,92 +350,21 @@
 
             </div> <!-- fin du contenu « compte » -->
 
-            <!-- ===== Contenu de la page « Récupération » (étape 3) ===== -->
+            <!-- ===== Contenu de la page « Récupération » : un bloc par ÉTAT ===== -->
+            <!-- Les deux blocs sont vides : autotest.js les remplit à partir de ETATS_RECUPERATION
+                 (état « faible » = étape 3, état « complet » = étape 7). Même mise en page, contenu différent. -->
             <div class="c-contenu" data-sous="recuperation" hidden>
               <!-- Zone qui défile (le menu et la barre du haut, eux, restent fixes) -->
               <div class="r-defile">
-                <div class="r-colonne">
-
-                  <!-- 1. Titre + paragraphe -->
-                  <h2 class="r-titre">Récupération</h2>
-                  <p class="r-intro">Le chiffrement de bout en bout de SuiteSécurité signifie que seul vous pouvez déverrouiller vos données. Configurez des options de récupération afin de ne jamais perdre vos accès.</p>
-
-                  <!-- 2. Carte « Capacité de récupération » -->
-                  <section class="r-carte">
-                    <div class="r-entete">
-                      <span class="r-bouclier" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V5z"/></svg>
-                        <b>3/10</b>
-                      </span>
-                      <strong class="r-cap-titre">Capacité de récupération</strong>
-                      <span class="r-faible">Faible
-                        <button type="button" class="c-info r-info" data-msg="info-faible" aria-label="Information"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
-                      </span>
-                      <!-- Barre de 10 segments : les 3 premiers rouges -->
-                      <div class="r-segments" aria-hidden="true">
-                        <span class="rouge"></span><span class="rouge"></span><span class="rouge"></span>
-                        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                      </div>
-                    </div>
-                    <div class="r-corps">
-                      <strong>Évitez toute perte de données en prenant quelques précautions.</strong>
-                      <p class="r-gris">Votre configuration de récupération est incomplète. Si vous oubliez votre mot de passe, vous risquez toujours de ne plus pouvoir accéder à vos e-mails, à vos fichiers et à vos mots de passe.</p>
-                      <!-- SEUL élément qui change de page : étape 4 -->
-                      <button type="button" class="r-bouton-rose" id="btn-methodes">Ajouter des méthodes de récupération</button>
-                    </div>
-                  </section>
-
-                  <!-- 3. Options de réinitialisation du mot de passe -->
-                  <h3 class="r-section">Options de réinitialisation du mot de passe</h3>
-                  <p class="r-gris r-section-texte">Ceci permet de récupérer les accès à votre compte SuiteSécurité mais ne permet de récupérer vos données chiffrées.</p>
-                  <div class="r-carte">
-                    <button type="button" class="r-ligne" data-msg="verif-email">
-                      <svg class="r-icone" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
-                      <span class="r-nom">Vérification par e-mail</span>
-                      <span class="r-pastille r-orange"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>Ajouter une adresse e-mail</span>
-                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
-                    </button>
-                    <button type="button" class="r-ligne" data-msg="verif-sms">
-                      <svg class="r-icone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-                      <span class="r-nom">Vérification SMS</span>
-                      <span class="r-pastille r-orange"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>Ajouter un numéro de téléphone</span>
-                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
-                    </button>
-                  </div>
-
-                  <!-- 4. Options de récupération de données -->
-                  <h3 class="r-section">Options de récupération de données</h3>
-                  <p class="r-gris r-section-texte">Comment déverrouiller mes données chiffrées si je perds mon mot de passe.</p>
-                  <div class="r-carte">
-                    <!-- Bandeau beige -->
-                    <div class="r-bandeau">
-                      <span class="r-bandeau-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 11v6M12 7.5v.01"/></svg></span>
-                      <p>La récupération des données nécessite une option de réinitialisation du mot de passe (e-mail ou SMS).</p>
-                      <button type="button" class="r-bouton-blanc" data-msg="ajouter-option">Ajouter une option</button>
-                    </div>
-                    <button type="button" class="r-ligne" data-msg="sauvegarde-appareil">
-                      <svg class="r-icone" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
-                      <span class="r-nom">Sauvegarde des données de l'appareil</span>
-                      <span class="r-pastille r-bleu"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Activée</span>
-                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
-                    </button>
-                    <button type="button" class="r-ligne" data-msg="fichier-recup">
-                      <svg class="r-icone" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>
-                      <span class="r-nom">Fichier de récupération</span>
-                      <span class="r-pastille r-orange"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>Non enregistré</span>
-                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
-                    </button>
-                    <button type="button" class="r-ligne" data-msg="contacts-recup">
-                      <svg class="r-icone" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M17 11a3 3 0 1 0 0-6M19 14c2 .5 3 2.5 3 5"/></svg>
-                      <span class="r-nom">Contacts de récupération des données</span>
-                      <span class="r-pastille r-orange"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg>Ajouter un contact de récupération</span>
-                      <svg class="r-fleche" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
-                    </button>
-                  </div>
-
-                </div>
+                <div class="r-colonne" id="r-colonne-faible"></div>
               </div>
-            </div> <!-- fin du contenu « récupération » -->
+            </div> <!-- fin du contenu « récupération » (état faible) -->
+
+            <div class="c-contenu" data-sous="recuperation-complet" hidden>
+              <div class="r-defile">
+                <div class="r-colonne" id="r-colonne-complet"></div>
+              </div>
+            </div> <!-- fin du contenu « récupération » (état complet) -->
 
           </div>
         </div>
@@ -653,7 +607,8 @@
 
             <div class="v-boutons">
               <button type="button" class="v-plus-tard" data-msg="plus-tard">Plus tard</button>
-              <button type="button" class="v-verifier" data-msg="phrase-termine">Terminé</button>
+              <!-- « Terminé » : étape 7 si la bonne réponse est choisie, sinon message humoristique (voir autotest.js) -->
+              <button type="button" class="v-verifier" id="btn-terminer">Terminé</button>
             </div>
 
           </div>
@@ -723,13 +678,17 @@
     <!-- Bulle de dialogue (étape 4 seulement) : pointe vers le calepin, non cliquable -->
     <div class="bulle-calepin" id="bulle-calepin" hidden>J'ai noté mon mot de passe dans mon calepin secret</div>
 
+    <!-- Bulle de dialogue de l'étape 7 (même style et même place que celle de l'étape 4), non cliquable.
+         Elle apparaît 0,8 s après l'arrivée sur l'étape 7 (voir preparerExtensions dans autotest.js) -->
+    <div class="bulle-calepin" id="bulle-extension" hidden>Je dois ajouter l'extension SuiteSécurité maintenant</div>
+
     <!-- Bulles de dialogue de l'étape 6 (même style que la bulle de l'étape 4) :
          la 1re pose la question et propose 2 réponses (écrites par autotest.js depuis REPONSES_PDF),
          la 2e (sous la 1re) répond « mauvaise idée » puis disparaît seule -->
     <div class="bulles-dialogue">
       <div class="bulle-calepin bulle-dialogue" id="bulle-pdf" hidden>
         <p class="bulle-texte">Hmm... j'en fais quoi... ?</p>
-        <div class="bulle-reponses" id="bulle-reponses"></div>
+        <div class="bulle-reponses" id="bulle-reponses" role="radiogroup" aria-label="Votre réponse"></div>
       </div>
       <div class="bulle-calepin bulle-dialogue" id="bulle-mauvaise" hidden>Non, c'est une mauvaise idée en fait...</div>
     </div>
@@ -779,9 +738,9 @@
   </section>
 
   <!-- ===================================================== -->
-  <!--  ÉTAPE 7 : provisoire                                 -->
+  <!--  ÉTAPE 8 : provisoire                                 -->
   <!-- ===================================================== -->
-  <section class="etape etape-carte" id="etape-7" data-etapes="7" hidden>
+  <section class="etape etape-carte" id="etape-8" data-etapes="8" hidden>
     <div class="carte accueil">
       <h1>Auto-test</h1>
       <p>Suite de l'auto-test : en construction.</p>
