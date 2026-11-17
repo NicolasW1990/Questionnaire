@@ -1103,7 +1103,8 @@
   gap: 0.7cqw;
 }
 .v-protection-ligne { display: flex; align-items: center; justify-content: space-between; }
-.v-faible { display: inline-flex; align-items: center; gap: 0.5cqw; font-weight: 800; color: #e0394f; }
+/* Couleurs réglables : --prot-couleur (texte + bouclier) et --prot-barre (segments), posées par autotest.js */
+.v-faible { display: inline-flex; align-items: center; gap: 0.5cqw; font-weight: 800; color: var(--prot-couleur, #e0394f); }
 .v-bouclier {
   position: relative;
   width: max(1.9cqw, 20px);
@@ -1111,7 +1112,7 @@
   display: grid;
   place-items: center;
 }
-.v-bouclier svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: #e0394f; stroke: none; }
+.v-bouclier svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: var(--prot-couleur, #e0394f); stroke: none; }
 .v-bouclier b { position: relative; margin-top: -1px; font-size: var(--t); color: #fff; }
 .v-segments { display: flex; gap: 0.35cqw; }
 .v-segments span {
@@ -1120,7 +1121,7 @@
   background: #e4e3ec;
   border-radius: 99px;
 }
-.v-segments .rouge { background: #e0394f; }
+.v-segments .plein { background: var(--prot-barre, #e0394f); }   /* segment coloré */
 
 /* 5. Les deux « feuilles » empilées sous la carte */
 .v-feuille {
@@ -1170,21 +1171,46 @@
 .v-carte-titre { margin: 0; text-align: center; font-size: var(--t-fort); font-weight: 800; }
 .v-carte-texte { margin: 0; line-height: 1.35; color: #4a4560; }
 .v-etiquette { margin: 0.4cqw 0 0; font-weight: 700; }   /* annule le style global de label */
-.v-champ-bloc { position: relative; flex: none; }
-.v-champ {
-  width: 100%;
+/* FAUX champ de mot de passe (ce n'est pas un <input> : voir autotest.html) */
+.champ-mdp {
+  position: relative;
+  flex: none;
+  display: flex;
   height: max(3cqw, 32px);
-  padding: 0 max(3cqw, 34px) 0 1cqw;
-  font: inherit;
+  background: #fff;
+  border: 2px solid #6d4aff;                    /* bordure violette */
+  border-radius: 0.9cqw;
+}
+/* Léger halo violet quand le champ (ou son œil) a le focus */
+.champ-mdp:focus-within { box-shadow: 0 0 0 0.3cqw rgba(109, 74, 255, 0.18); }
+/* Zone où s'affichent les caractères (reçoit le focus) */
+.champ-mdp-saisie {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 max(3cqw, 34px) 0 1cqw;           /* place à droite pour l'œil */
   font-size: var(--t-fort);
   color: #1d1a3a;
-  caret-color: #6d4aff;                         /* curseur bien visible */
-  background: #fff;
-  border: 2px solid #6d4aff;                    /* bordure violette = état « focus » */
-  border-radius: 0.9cqw;
-  box-shadow: 0 0 0 0.3cqw rgba(109, 74, 255, 0.18);   /* léger halo */
-  outline: none;
+  white-space: pre;
+  overflow: hidden;
+  outline: none;                                /* le halo du conteneur remplace le contour */
+  cursor: text;
+  user-select: none;                            /* texte non sélectionnable */
+  -webkit-user-select: none;
 }
+.champ-mdp-texte { white-space: pre; }
+/* Curseur clignotant simulé : visible seulement quand le champ a le focus */
+.champ-mdp-curseur {
+  display: none;
+  width: 2px;
+  height: 1.3em;
+  margin-left: 1px;
+  background: #6d4aff;
+  animation: curseur-clignote 1s steps(1) infinite;
+}
+.champ-mdp-saisie:focus .champ-mdp-curseur { display: block; }
+@keyframes curseur-clignote { 50% { opacity: 0; } }
 .v-oeil {
   position: absolute;
   right: 0.9cqw;
@@ -1244,6 +1270,143 @@
 }
 
 /* =====================================================
+   VUE « E-MAIL DE RÉCUPÉRATION » (étape 5)
+   Elle réutilise les composants de la vue « verification » (.v-haut, .v-titre, .v-protection,
+   .v-feuille, .v-carte, .v-boutons, .v-verifier…). Ici la carte est plus haute et s'adapte à
+   son contenu : les éléments sont donc posés les uns sous les autres (pas en position absolue)
+   et c'est la zone de page qui défile si c'est trop haut.
+   ===================================================== */
+.vue-email {
+  overflow-x: hidden;
+  overflow-y: auto;                              /* défilement vertical si la page dépasse la fenêtre */
+  scrollbar-width: thin;                         /* barre discrète */
+  scrollbar-color: #cfcbe3 transparent;
+}
+.vue-email .c-page {
+  position: relative;
+  inset: auto;
+  min-height: 100%;
+  padding-bottom: 4cqw;
+}
+/* Le haut reste en haut à gauche ; titre, protection, pile et boutons se suivent dans la colonne étroite */
+.vue-email .v-haut { top: 2.2cqw; }
+.vue-email .v-titre,
+.vue-email .v-protection,
+.vue-email .e-pile,
+.vue-email .v-boutons {
+  position: relative;                            /* dans le flux (plus en position absolue) */
+  inset: auto;
+  margin-left: 46%;
+  width: 36%;
+}
+.vue-email .v-titre { padding-top: 6cqw; }
+.vue-email .v-protection { margin-top: 2.6cqw; }
+.vue-email .e-pile { margin-top: 2cqw; }
+.vue-email .v-boutons { margin-top: 3.6cqw; height: max(3cqw, 34px); }
+
+/* La pile prend la hauteur de la carte ; les feuilles dépassent un peu sous elle */
+.vue-email .v-feuille { top: 0; }
+.vue-email .v-feuille-1 { left: 1.2cqw; right: 1.2cqw; width: auto; height: auto; bottom: -1cqw; }
+.vue-email .v-feuille-2 { left: 2.4cqw; right: 2.4cqw; width: auto; height: auto; bottom: -2cqw; }
+.vue-email .v-carte {
+  position: relative;
+  left: auto; top: auto;
+  width: auto;
+  height: auto;                                  /* s'adapte au contenu */
+  padding-bottom: 3.5cqw;                        /* espace vide en bas de la carte */
+}
+
+/* Enveloppe en haut de la carte (décorative) */
+.e-enveloppe { flex: none; align-self: center; width: max(6cqw, 56px); }
+.e-enveloppe svg { display: block; width: 100%; height: auto; }
+
+/* Liste de choix (boutons radio) */
+.e-liste { display: flex; flex-direction: column; gap: 0.8cqw; }
+.e-choix { position: relative; }
+/* Le vrai bouton radio reste dans la page (clavier, lecteurs d'écran) mais est invisible :
+   c'est le <label> qui dessine la boîte */
+.e-radio {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.e-label {
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  margin: 0;                                     /* annule le style global de label */
+  padding: 0.9cqw 1.1cqw;
+  font-weight: 400;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #dcdae8;                     /* fine bordure gris clair */
+  border-radius: 10px;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.e-label:hover { border-color: rgba(109, 74, 255, 0.5); }
+.e-textes { display: flex; flex-direction: column; gap: 0.2cqw; min-width: 0; }
+.e-textes strong { font-weight: 700; }
+.e-adresse { color: #6b6784; overflow-wrap: anywhere; }
+/* Rond du bouton radio */
+.e-rond {
+  flex: none;
+  width: max(1.5cqw, 16px);
+  height: max(1.5cqw, 16px);
+  background: #fff;
+  border: 2px solid #b9b5cc;
+  border-radius: 50%;
+}
+/* Choix sélectionné : bordure violette de 2 px (1 px + 1 px d'ombre), fond violet très pâle, rond rempli */
+.e-radio:checked + .e-label {
+  background: #f4f0ff;
+  border-color: #6d4aff;
+  box-shadow: inset 0 0 0 1px #6d4aff;
+}
+.e-radio:checked + .e-label .e-rond {
+  background: #6d4aff;
+  border-color: #6d4aff;
+  box-shadow: inset 0 0 0 2.5px #f4f0ff;         /* petit anneau clair autour du point violet */
+}
+/* Navigation au clavier : contour bien visible */
+.e-radio:focus-visible + .e-label { outline: 2px solid #6d4aff; outline-offset: 2px; }
+
+/* =====================================================
+   NOTES « À FAIRE » du calepin (page 1) : MÊME mise en page sur le petit calepin et le calepin ouvert.
+   Toutes les tailles sont en cqw (largeur du calepin) : le texte suit la taille du calepin.
+   Les hauteurs sont des multiples de 3,4 cqw (écart entre deux lignes du papier).
+   ===================================================== */
+.notes-liste {
+  display: block;
+  text-align: left;
+  font-family: "Segoe Script", "Comic Sans MS", cursive;   /* même écriture manuscrite que le reste */
+  font-size: 2.7cqw;
+  line-height: 3.4cqw;
+  color: #243b8f;                               /* encre bleue */
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Sur le petit calepin : posée au même endroit que le texte du calepin ouvert (sous la bande, après la marge) */
+.calepin .notes-liste {
+  position: absolute;
+  top: 24.2cqw;
+  left: 16cqw;
+  right: 4cqw;
+}
+.notes-titre { display: block; }
+/* Une tâche : petit tiret à gauche, et si la ligne est longue, la suite passe dessous avec un retrait */
+.notes-ligne {
+  position: relative;
+  display: block;
+  padding-left: 3cqw;
+  overflow-wrap: anywhere;                      /* ne dépasse jamais du papier */
+}
+.notes-ligne::before { content: "-"; position: absolute; left: 0.6cqw; }
+
+/* =====================================================
    BULLE DE DIALOGUE (étape 4) : colonne de gauche, sous « ← Accueil »
    ===================================================== */
 .bulle-calepin {
@@ -1280,6 +1443,204 @@
   from { opacity: 0; transform: translateY(-10px) scale(0.9); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* =====================================================
+   VUE « PHRASE DE RÉCUPÉRATION » (étape 6)
+   Elle réutilise la mise en page de la vue « email » (.vue-email) et les composants de la
+   vue « verification ». Ici : seulement la boîte de téléchargement et son bouton rond.
+   ===================================================== */
+/* Boîte de téléchargement : un <button> qui ressemble à une carte */
+.p-boite {
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  width: 100%;
+  padding: 0.9cqw 1.1cqw;
+  text-align: left;
+  color: inherit;
+  background: #fff;
+  border: 1px solid #dcdae8;                     /* fine bordure gris clair */
+  border-radius: 10px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.p-boite:hover { border-color: rgba(109, 74, 255, 0.5); background: #faf9ff; }
+.p-miniature { flex: none; width: max(3.4cqw, 36px); height: auto; }
+.p-textes { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2cqw; }
+.p-textes strong { font-weight: 700; }
+.p-fichier { color: #6b6784; overflow-wrap: anywhere; }     /* peut passer sur 2 lignes */
+.p-taille { color: #6b6784; font-size: 0.9em; }
+
+/* Bouton rond (décoratif : c'est la boîte qui est le vrai bouton) */
+.p-rond {
+  position: relative;
+  flex: none;
+  width: max(2.6cqw, 30px);
+  height: max(2.6cqw, 30px);
+  color: #6d4aff;
+  background: #fff;
+  border: 1px solid #cfc9e6;                     /* contour fin */
+  border-radius: 50%;
+}
+.p-rond svg {
+  position: absolute;
+  inset: 22%;
+  width: 56%;
+  height: 56%;
+  display: none;                                 /* une seule icône à la fois (voir data-etat) */
+}
+.p-rond[data-etat="initial"] .p-ico-fleche,
+.p-rond[data-etat="charge"] .p-ico-anneau,
+.p-rond[data-etat="ok"] .p-ico-coche { display: block; }
+.p-ico-anneau { stroke-dasharray: 30 20; animation: p-tourne 0.8s linear infinite; }
+.p-ico-coche { color: #2f9e6e; stroke-width: 2.6; animation: p-coche 0.25s ease-out; }
+.p-rond[data-etat="ok"] { border-color: #2f9e6e; }
+@keyframes p-tourne { to { transform: rotate(360deg); } }
+@keyframes p-coche { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* =====================================================
+   FENÊTRE « TÉLÉCHARGEMENTS » (faux explorateur Windows 11 clair), posée sur la page web
+   Tailles en px (la fenêtre n'est pas dans une vue en cqw).
+   ===================================================== */
+/* Fond transparent : bloque les clics sur la page web derrière (sous la bulle de message, z-index 10) */
+.dl-fond { position: absolute; inset: 0; z-index: 7; background: rgba(20, 18, 40, 0.12); }
+.dl-fenetre {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  width: 55%;
+  min-width: 580px;                              /* assez large pour les noms de fichiers sur un petit écran */
+  max-width: calc(100% - 24px);
+  height: fit-content;
+  margin: auto;                                  /* centrée dans la page */
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  color: #1b1b1b;
+  background: #fbfbfb;
+  border: 1px solid #c9c9d1;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.4);    /* ombre portée */
+  animation: dl-ouverture 0.25s ease-out;        /* fondu + léger agrandissement */
+}
+.dl-fond[hidden],
+.dl-fenetre[hidden],
+.tache-dl[hidden] { display: none !important; }
+@keyframes dl-ouverture {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+/* Barre de titre */
+.dl-titre {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding-left: 12px;
+  background: #eef1f7;
+}
+.dl-titre-texte { flex: 1; margin-left: 8px; }
+.dl-ico { flex: none; width: 18px; height: 18px; }
+.dl-bouton-deco {
+  width: 46px;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: 14px;
+  color: #1b1b1b;
+  background: none;
+  border: 0;
+}
+/* Seul « ✕ » fonctionne (rouge au survol, comme sous Windows) */
+.dl-x { cursor: pointer; }
+.dl-x:hover { color: #fff; background: #c42b1c; }
+.dl-x:focus-visible { outline: 2px solid #0067c0; outline-offset: -3px; }
+/* Barre d'adresse */
+.dl-adresse {
+  margin: 8px 12px;
+  padding: 5px 12px;
+  background: #fff;
+  border: 1px solid #dcdce4;
+  border-radius: 6px;
+}
+/* En-têtes de colonnes + lignes : même grille de 4 colonnes */
+.dl-entete,
+.dl-ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 114px 76px 64px;   /* Nom prend la place restante */
+  align-items: center;
+  column-gap: 6px;
+}
+.dl-entete { padding: 4px 15px; color: #5d5d66; border-bottom: 1px solid #e4e4ea; }
+.dl-droite { text-align: right; }
+.dl-liste { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px 12px; }
+.dl-ligne {
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 6px;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.dl-ligne span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dl-nom { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dl-ligne:hover { background: #e5f3ff; }                          /* survol */
+.dl-ligne.selection { background: #cce8ff; border-color: #7fbbe9; }  /* ligne sélectionnée */
+.dl-ligne:focus-visible { outline: 2px solid #0067c0; outline-offset: -2px; }
+
+/* Pastille « Téléchargements » dans la barre des tâches (décorative) */
+.tache-dl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.22);
+  border-bottom: 2px solid #8b5cf6;
+}
+.tache-dl svg { width: 16px; height: 16px; }
+
+/* =====================================================
+   BULLES DE DIALOGUE de l'étape 6 : même style que .bulle-calepin (étape 4),
+   empilées dans la colonne de gauche, sous « ← Accueil »
+   ===================================================== */
+.bulles-dialogue {
+  position: absolute;
+  left: 16px;
+  top: 44px;
+  z-index: 6;
+  width: calc(28% - 32px);
+  max-width: 330px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  pointer-events: none;
+}
+/* Les bulles sont posées DANS la colonne (pas en position absolue) */
+.bulle-dialogue { position: relative; left: auto; top: auto; width: auto; max-width: none; }
+.bulle-texte { margin: 0; font-weight: 700; }
+.bulle-reponses { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.bulle-reponse {
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: #1d1a3a;
+  cursor: pointer;
+  pointer-events: auto;                          /* seules les réponses sont cliquables */
+  background: #f1edff;
+  border: 1px solid #cfc3ff;
+  border-radius: 14px;
+}
+.bulle-reponse:hover { background: #e5ddff; }
+.bulle-reponse:focus-visible { outline: 2px solid #6d4aff; outline-offset: 2px; }
 
 /* =====================================================
    CALEPIN OUVERT (étape 4) : fond assombri + même calepin en grand
@@ -1334,6 +1695,17 @@
   letter-spacing: 0.04em;
   word-break: break-all;
 }
+/* Adresse de récupération et son mot de passe : même écriture, un peu plus petits que le mot de passe.
+   Toutes les hauteurs sont des multiples de 3,4 cqw (l'écart entre deux lignes du papier). */
+.carnet-page .carnet-suite { margin-top: 3.4cqw; }
+.carnet-page .carnet-petit {
+  margin-top: 3.4cqw;
+  font-size: 3.2cqw;
+  line-height: 3.4cqw;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  word-break: break-all;
+}
 
 /* Page 1 : se tourne autour de son bord gauche */
 .carnet-page-1 {
@@ -1379,7 +1751,7 @@
 .carnet-fermer:focus-visible { outline: 2px solid #243b8f; outline-offset: 2px; }
 
 /* =====================================================
-   ÉTAPE 5 (provisoire) : une carte centrée
+   ÉTAPE 6 (provisoire) : une carte centrée
    ===================================================== */
 .etape-carte {
   min-height: 100vh;
@@ -1420,6 +1792,7 @@
   .c-bouton,
   .r-bouton-rose,
   .r-ligne,
+  .e-label,
   .calepin,
   .v-boutons button { transition: none; }
   /* Sans animation : la page 2 du calepin apparaît simplement au survol */
@@ -1428,6 +1801,11 @@
   .carnet-fond,
   .carnet,
   .v-verifier.pret { animation: none; }
+  .champ-mdp-curseur { animation: none; }       /* curseur fixe, sans clignotement */
+  .dl-fenetre,
+  .p-ico-anneau,
+  .p-ico-coche { animation: none; }            /* fenêtre sans animation d'ouverture, anneau fixe */
+  .p-boite { transition: none; }
   .calepin:not(:disabled):hover { transform: rotate(-2.5deg); }
   .service:hover .carre { transform: none; }
 }
