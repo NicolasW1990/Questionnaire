@@ -276,6 +276,8 @@
 /* À droite de la barre d'adresse : même marge à droite que le bloc utilisateur de la page web (0,8 cqw) */
 .ext-zone {
   position: relative;
+  display: flex;                                 /* logo épinglé + bouton puzzle côte à côte */
+  align-items: center;
   margin-left: auto;
   margin-right: calc(0.8cqw - 14px);             /* la barre d'adresse a déjà 14 px de marge */
 }
@@ -304,7 +306,7 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: max(15cqw, 220px);
+  width: max(21cqw, 300px);                      /* assez large pour la ligne « SuiteSécurité » (étape 9) */
   padding: 8px 0;
   color: #1f1f1f;
   background: #fff;
@@ -348,6 +350,66 @@
   stroke: #5f6368;
   stroke-width: 2;
   stroke-linecap: round;
+}
+
+/* ----- Étape 9 : logo épinglé, ligne « SuiteSécurité » et petit menu « ⋯ » ----- */
+.ext-defs { position: absolute; }                /* le dessin du logo (symbol) reste invisible */
+/* Logo épinglé : même taille cliquable que le bouton puzzle (la règle .ext-bouton), il apparaît avec un petit rebond */
+.ext-epingle[hidden] { display: none; }
+.ext-epingle { animation: ext-rebond 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.ext-epingle svg { width: max(1.3cqw, 18px); height: max(1.3cqw, 18px); }
+@keyframes ext-rebond {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+.ext-ligne-ss {
+  position: relative;                            /* le petit menu se place par rapport à la ligne */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+}
+.ext-ligne-ss[hidden] { display: none; }
+.ext-logo { width: max(2.2cqw, 30px); height: max(2.2cqw, 30px); }
+.ext-ss-texte { display: flex; flex-direction: column; min-width: 0; }
+.ext-ss-texte strong { font-size: 13px; font-weight: 600; color: #1f1f1f; }
+.ext-ss-texte span { font-size: 11px; line-height: 1.35; color: #5f6368; }   /* texte gris, sur 2 lignes */
+.ext-options {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: #5f6368;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+}
+.ext-options svg { width: 18px; height: 18px; fill: currentColor; }
+.ext-options:hover,
+.ext-options[aria-expanded="true"] { background: #e8eaed; }
+.ext-options:focus-visible { outline: 2px solid #1a73e8; outline-offset: 1px; }
+.ext-trait { margin: 6px 0; border: 0; border-top: 1px solid #ececf3; }
+/* Petit menu : sous le bouton « ⋯ », au-dessus du panneau */
+.ext-menu {
+  position: absolute;
+  top: calc(100% - 4px);
+  right: 10px;
+  z-index: 5;
+  min-width: 230px;
+  padding: 4px 0;
+  background: #fff;
+  border: 1px solid #e3e3ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(30, 20, 80, 0.18);
+  animation: ext-menu-ouverture 0.15s ease-out;  /* fondu + léger glissement */
+}
+.ext-menu[hidden] { display: none; }
+@keyframes ext-menu-ouverture {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ---------- La page web simulée ---------- */
@@ -1929,7 +1991,349 @@
 .carnet-fermer:focus-visible { outline: 2px solid #243b8f; outline-offset: 2px; }
 
 /* =====================================================
-   ÉTAPE 6 (provisoire) : une carte centrée
+   VUE « GESTION DES EXTENSIONS » (étape 8)
+   Elle réutilise .vue-compte (conteneur en cqw, boutons, focus). Préfixe « x- » pour tout ce qui lui est propre.
+   Le menu reste fixe, la zone de contenu (.x-defile) défile. Texte jamais sous 11 px.
+   ===================================================== */
+.vue-ext { background: #f7f6fb; }                /* lavande très pâle */
+.x-page {
+  --t: max(1.05cqw, 11px);                       /* taille de texte normale */
+  position: absolute;
+  inset: 0;
+  font-size: var(--t);
+}
+.x-defs { position: absolute; }                  /* dessins invisibles (étoiles, roue) */
+.x-gris { margin: 0; color: #6b6880; }
+
+/* ---------- Menu de gauche (≈ 18 % de la largeur) ---------- */
+.x-menu {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 18%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3cqw;
+  padding: 1.8cqw 1cqw 1cqw;
+  overflow-y: auto;
+  background: #f9f9fb;
+  border-right: 1px solid #e6e4ef;
+}
+.x-logo {                                        /* petite icône ronde dégradée */
+  width: max(2.6cqw, 28px);
+  height: max(2.6cqw, 28px);
+  margin-left: 0.4cqw;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7b5fe0, #3fb6d9);
+}
+.x-menu-titre {
+  margin: 0.5cqw 0 1.2cqw 0.4cqw;
+  font-size: max(1.7cqw, 15px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1d1a3a;
+}
+.x-entree {
+  display: flex;
+  align-items: center;
+  gap: 0.8cqw;
+  width: 100%;
+  padding: 0.75cqw 1cqw;
+  font-size: max(1.1cqw, 12px);
+  text-align: left;
+  color: #2b2840;
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  transition: background 0.15s;
+}
+.x-entree svg { width: max(1.5cqw, 16px); height: max(1.5cqw, 16px); }
+.x-entree:hover { background: #ecebf4; }
+.x-entree.actif { color: #fff; font-weight: 700; background: #7b5fe0; }   /* grande pastille violette */
+.x-entree.actif svg.x-plein { fill: currentColor; stroke: none; }
+.x-trait { width: 100%; margin: 0.8cqw 0; border: 0; border-top: 1px solid #e0deea; }
+
+/* ---------- Zone de contenu : de 20 % à 63 % de la largeur de la page ---------- */
+.x-defile {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 18%; right: 0;
+  overflow-y: auto;
+}
+.x-colonne {
+  width: 43cqw;
+  margin-left: 2cqw;
+  padding: 1.6cqw 0 4cqw;
+}
+
+/* Ligne de recherche, alignée à droite */
+.x-recherche-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7cqw;
+}
+.x-decouvrir { flex: none; font-size: var(--t); color: #2b2840; }
+.x-champ-zone { position: relative; flex: none; width: 19.5cqw; }
+.x-champ {
+  display: flex;
+  align-items: center;
+  height: max(2.6cqw, 30px);
+  padding: 0 0.6cqw 0 1cqw;
+  background: #fff;
+  border: 1px solid #3a3550;
+  border-radius: 999px;
+}
+.x-champ:focus-within { border-color: #7b5fe0; box-shadow: 0 0 0 2px rgba(123, 95, 224, 0.3); }
+/* « .x-champ .x-input » (plus précis) : sinon la règle globale input[type="text"] de style.css
+   (largeur 50 %, fond gris, bordure, coins) l'emporte sur celle-ci */
+.x-champ .x-input {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  color: #1d1a3a;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+}
+.x-effacer {
+  flex: none;
+  width: 1.8em;
+  height: 1.8em;
+  padding: 0;
+  font-size: 0.9em;
+  color: #5f5b73;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+}
+.x-effacer[hidden] { display: none; }
+.x-effacer:hover { background: #ecebf4; }
+.x-loupe {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: max(2.4cqw, 28px);
+  height: max(2.4cqw, 28px);
+  padding: 0;
+  color: #6b6880;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+}
+.x-loupe svg { width: max(1.4cqw, 16px); height: max(1.4cqw, 16px); }
+.x-loupe:hover { background: #ecebf4; }
+
+/* Liste de résultats : sous le champ, alignée sur son bord droit, au-dessus de la page.
+   Largeur ≈ 27 cqw, avec un minimum (380 px) pour que le nom, la description et le bouton « Ajouter » tiennent sur les fenêtres plus petites. */
+.x-resultats {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  width: max(27cqw, 380px);
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #ebebf0;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(40, 30, 90, 0.16);
+  animation: x-ouverture 0.2s ease-out;          /* fondu + léger glissement vers le bas */
+}
+.x-resultats[hidden] { display: none; }
+@keyframes x-ouverture {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.x-res-ligne {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+}
+.x-res-ligne:hover { background: #f7f6fb; }
+.x-res-ligne .x-ico { width: max(2.4cqw, 28px); height: max(2.4cqw, 28px); border-radius: 8px; }
+.x-res-ligne .x-ico svg { width: 60%; height: 60%; }
+.x-res-texte { min-width: 0; display: flex; flex-direction: column; }
+.x-res-texte strong { font-size: max(1.1cqw, 12px); }
+.x-res-texte .x-gris {                           /* description sur UNE ligne */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: max(0.95cqw, 11px);
+}
+
+/* ---------- Titre + bouton roue dentée ---------- */
+.x-titre-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2cqw;
+}
+.x-titre { margin: 0; font-size: max(1.6cqw, 15px); font-weight: 600; color: #1d1a3a; }
+.x-roue {
+  display: grid;
+  place-items: center;
+  width: max(2.6cqw, 30px);
+  height: max(2.6cqw, 30px);
+  padding: 0;
+  color: #7b5fe0;
+  background: #fff;
+  border: 1.5px solid #7b5fe0;
+  border-radius: 50%;
+}
+.x-roue svg { width: 60%; height: 60%; }
+.x-roue:hover { background: #f1eefc; }
+.x-section { margin: 2.4cqw 0 0.2cqw; font-size: max(1.3cqw, 13px); font-weight: 700; color: #1d1a3a; }
+
+/* ---------- Cartes d'extensions ---------- */
+.x-carte {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.2cqw;
+  margin-top: 0.9cqw;
+  padding: 1.2cqw;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(40, 30, 90, 0.12);
+}
+.x-reco { align-items: start; }
+.x-reco > .x-bouton-ajout { align-self: center; }
+.x-ico {                                         /* icône carrée générique (couleurs ci-dessous) */
+  display: grid;
+  place-items: center;
+  width: max(3.4cqw, 36px);
+  height: max(3.4cqw, 36px);
+  color: #fff;
+  border-radius: 10px;
+}
+.x-ico svg { width: 58%; height: 58%; }
+.x-bleu   { background: #3b82f6; }
+.x-rouge  { background: #8f2f3f; }
+.x-violet { background: #8b6cf0; }
+.x-vert   { background: #2f9e6e; }
+.x-orange { background: #ef8a3c; }
+.x-carte-texte { min-width: 0; }
+.x-carte-texte p { margin: 0.2cqw 0 0; line-height: 1.4; }
+.x-nom { display: inline-flex; align-items: center; gap: 0.5cqw; font-size: max(1.2cqw, 12px); color: #1d1a3a; }
+.x-medaille { width: 1.1em; height: 1.1em; }
+.x-auteur { color: #6b6880; }
+.x-auteur span { text-decoration: underline; }
+.x-etoiles { display: flex; align-items: center; gap: 0.8cqw; }
+.x-etoiles-dessin { display: inline-flex; }
+.x-etoiles-dessin svg { width: 1.15em; height: 1.15em; }
+.x-carte-actions { display: flex; align-items: center; gap: 0.8cqw; }
+
+/* Interrupteur violet (activé) : un fond arrondi + une pastille blanche à droite */
+.x-inter {
+  position: relative;
+  width: max(3cqw, 34px);
+  height: max(1.7cqw, 19px);
+  padding: 0;
+  background: #7b5fe0;
+  border: 0;
+  border-radius: 999px;
+}
+.x-inter::after {
+  content: "";
+  position: absolute;
+  top: 2px; right: 2px;
+  height: calc(100% - 4px);
+  aspect-ratio: 1;                               /* pastille ronde */
+  background: #fff;
+  border-radius: 50%;
+}
+.x-points {
+  width: max(2.2cqw, 26px);
+  height: max(2.2cqw, 26px);
+  padding: 0;
+  font-size: 1.5em;
+  line-height: 1;
+  color: #4a4660;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+}
+.x-points:hover { background: #ecebf4; }
+
+/* Bandeau d'information : bande lavande à gauche */
+.x-bandeau {
+  display: flex;
+  align-items: stretch;
+  margin-top: 0.9cqw;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(40, 30, 90, 0.12);
+}
+.x-bandeau-bande {
+  flex: none;
+  display: grid;
+  place-items: start center;
+  width: max(3.4cqw, 36px);
+  padding-top: 1.2cqw;
+  color: #7b5fe0;
+  background: #ece8fb;
+}
+.x-bandeau-bande svg { width: max(1.6cqw, 17px); height: max(1.6cqw, 17px); }
+.x-bandeau p { flex: 1; margin: 0; padding: 1cqw 1.2cqw; line-height: 1.45; color: #4a4660; }
+.x-lien { padding: 0; color: #7b5fe0; text-decoration: underline; background: none; border: 0; }
+.x-fermer {
+  flex: none;
+  align-self: flex-start;
+  margin: 0.6cqw;
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  color: #5f5b73;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+}
+.x-fermer:hover { background: #ecebf4; }
+
+/* Bouton pastille « Ajouter au navigateur » (blanc, bordure sombre), avec ses états */
+.x-bouton-ajout {
+  position: relative;
+  flex: none;
+  padding: 0.55cqw 1.1cqw;
+  font-size: var(--t);
+  font-weight: 500;
+  white-space: nowrap;
+  color: #1d1a3a;
+  background: #fff;
+  border: 1px solid #3a3550;
+  border-radius: 999px;
+  transition: background 0.15s;
+}
+.x-bouton-ajout:hover:not(:disabled) { background: #f1eefc; }
+.x-bouton-ajout:disabled { cursor: default; }
+.x-res-ligne .x-bouton-ajout { padding: 5px 10px; font-size: max(0.8cqw, 11px); }   /* bouton compact : la description garde de la place */
+.x-ajout-texte svg { width: 1.1em; height: 1.1em; margin-right: 0.3em; vertical-align: -0.2em; stroke-width: 2.6; }
+.x-anneau { display: none; }
+/* Chargement : le texte devient invisible (la largeur ne bouge pas) et un anneau tourne à la place */
+.x-bouton-ajout[data-etat="charge"] .x-ajout-texte { visibility: hidden; }
+.x-bouton-ajout[data-etat="charge"] .x-anneau {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 1.2em;
+  height: 1.2em;
+  margin: auto;
+  border: 2px solid #d9d3f5;
+  border-top-color: #7b5fe0;
+  border-radius: 50%;
+  animation: x-tour 0.7s linear infinite;
+}
+.x-bouton-ajout[data-etat="ajoute"] { color: #1f7a54; border-color: #2f9e6e; background: #eaf7f0; }
+@keyframes x-tour { to { transform: rotate(360deg); } }
+
+/* =====================================================
+   ÉTAPE 10 (provisoire) : une carte centrée
    ===================================================== */
 .etape-carte {
   min-height: 100vh;
@@ -1964,6 +2368,12 @@
    ===================================================== */
 @media (prefers-reduced-motion: reduce) {
   .ext-panneau { animation: none; }             /* le panneau apparaît tout de suite */
+  .ext-epingle,
+  .ext-menu { animation: none; }                 /* logo et petit menu apparaissent tout de suite */
+  .x-resultats { animation: none; }             /* la liste de résultats apparaît tout de suite */
+  .x-bouton-ajout[data-etat="charge"] .x-anneau { animation: none; }   /* anneau fixe */
+  .x-entree,
+  .x-bouton-ajout { transition: none; }
   .notes-texte { transition: none; }            /* le trait apparaît tout de suite */
   .toast { animation: none; }
   .carre,

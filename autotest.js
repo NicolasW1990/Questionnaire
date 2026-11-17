@@ -10,8 +10,13 @@
 //  - étape 4 : FAUX champ (un <div>, pas un <input>) à saisie spéciale + calepin interactif ; « Vérifier » ouvre l'étape 5 (page e-mail de récupération)
 //  - étape 5 : choix de l'adresse de récupération ; « Ajouter » ouvre l'étape 6 (phrase de récupération)
 //  - étape 6 : téléchargement du PDF → fenêtre « Téléchargements » + bulles de dialogue ; la bonne réponse (réponse 2) se sélectionne, puis « Terminé » ouvre l'étape 7
-//  - étape 7 : page « Récupération » dans son état COMPLET (Fort 8/10) ; bulle de dialogue ; la suite (étape 8, provisoire)
-//    passe par l'icône puzzle de la barre d'adresse > « Gérer les extensions »
+//  - étape 7 : page « Récupération » dans son état COMPLET (Fort 8/10) ; bulle de dialogue ; la suite
+//    passe par l'icône puzzle de la barre d'adresse > « Gérer les extensions » (étape 8)
+//  - étape 8 : page « Gestion des extensions » ; champ de recherche à saisie spéciale (il écrit « SuiteSécurité »),
+//    liste de résultats ; « Ajouter au navigateur » sur « SuiteSécurité » mène à l'étape 9
+//  - étape 9 : MÊME page que l'étape 7, mais sans bulle et avec l'icône puzzle décorative (retour à la page d'origine)
+//  - étape 10 : page provisoire (pas encore atteignable)
+//  - icône puzzle (étapes 7 et 9) : panneau ; à l'étape 9, ligne « SuiteSécurité » avec menu « ⋯ » pour épingler le logo à la barre d'outils
 //  - la page « Récupération » (étapes 3 et 7) est générée depuis ETATS_RECUPERATION : un objet de données par état
 // =====================================================
 
@@ -27,6 +32,22 @@ const MOT_DE_PASSE_RECUP = "R3cup!Jedi-47xQ";          // mot de passe de l'adre
 // ---------- DONNÉES FICTIVES de la page « Récupération » complète (étape 7) ----------
 const NUMERO_SMS = "+41 79 000 12 34";                 // faux numéro de téléphone
 const DATE_MODIF = "17 nov.";                           // date de « Dernière modification le … »
+
+// ---------- LA RECHERCHE D'EXTENSION (étape 8, à changer ICI) ----------
+// Dans le champ de recherche, CHAQUE touche imprimable écrit la lettre SUIVANTE de ce mot.
+const TEXTE_RECHERCHE = "SuiteSécurité";
+
+// Les 4 résultats de la liste, dans l'ordre d'affichage (facile à modifier) :
+//  - nom, description : textes affichés
+//  - couleur          : couleur de l'icône (classe CSS)
+//  - bonne            : true = la bonne extension (son bouton charge, puis mène à l'étape 9)
+//  - msg              : pour les autres, la clé du message humoristique (dans MESSAGES)
+const RESULTATS_EXTENSIONS = [
+  { nom: "Mot-de-Passe Express", description: "Un coffre rapide pour vos identifiants.", couleur: "x-bleu", msg: "x-pas-express" },
+  { nom: "SuiteSécurité", description: "Gestionnaire de mots de passe gratuit et chiffré pour garder vos identifiants en sécurité.", couleur: "x-violet", bonne: true },
+  { nom: "Coffre Facile", description: "Rangez vos mots de passe en un clic.", couleur: "x-vert", msg: "x-pas-coffre" },
+  { nom: "Clé Rapide", description: "Remplissage automatique ultra-rapide.", couleur: "x-orange", msg: "x-pas-cle" }
+];
 
 // ---------- LES NOTES DU CALEPIN (page 1, à changer ICI) ----------
 // Une ligne par tâche. Le titre « À faire : » est ajouté par le code (voir remplirNotes plus bas).
@@ -56,6 +77,10 @@ const REPONSES_PDF = [
 // Choix fait à l'étape 5 : "privee" ou "nouvelle" (vide tant qu'on n'a rien choisi).
 // On s'en servira plus tard, dans la suite de l'auto-test.
 let choixAdresseRecup = "";
+
+// L'extension SuiteSécurité a-t-elle été ajoutée ? Passe à true quand on arrive à l'étape 9 depuis l'étape 8.
+// On s'en servira plus tard, dans la suite de l'auto-test.
+let extensionAjoutee = false;
 
 // ---------- LES MESSAGES (facile à modifier) ----------
 // Pour chaque service : un tableau de messages.
@@ -305,6 +330,93 @@ const MESSAGES = {
     "Mon PDF se cache très bien, c'est rassurant."
   ],
 
+  // ----- Panneau de l'icône puzzle (étape 9) et logo épinglé : 2 variantes chacun -----
+  "gerer-ext-ici": [
+    "Gérer les extensions ? J'en ai déjà assez fait pour aujourd'hui.",
+    "Gérer quoi ? Mes extensions se gèrent très bien toutes seules."
+  ],
+  "logo-epingle": [
+    "Mon logo est là... reste à savoir quoi en faire.",
+    "Un beau logo, bien rangé... mais pour quoi faire ?"
+  ],
+
+  // ----- Page « Gestion des extensions » (étape 8) : 2 variantes chacun -----
+  // Recherche vide (Entrée ou loupe) et boutons « Ajouter au navigateur » des mauvais résultats
+  "x-recherche-vide": [
+    "Je cherche quoi, déjà ? Ah oui... il faut écrire quelque chose.",
+    "Une recherche vide ? Même moi, je ne suis pas si mystérieux."
+  ],
+  "x-pas-express": [
+    "Ce n'est pas le nom que je cherche... je continue.",
+    "Express ? Ce n'est pas le bon nom, je passe."
+  ],
+  "x-pas-coffre": [
+    "Un coffre facile ? Trop beau pour être vrai.",
+    "Facile ? Un bon coffre ne devrait pas l'être."
+  ],
+  "x-pas-cle": [
+    "Rapide, mais ce n'est pas celle que je cherche.",
+    "Une clé rapide ? Ce n'est pas la bonne serrure."
+  ],
+  // Menu de gauche
+  "x-recommandations": [
+    "Des recommandations ? J'ai déjà quelqu'un en tête.",
+    "Les recommandations des autres, très peu pour moi."
+  ],
+  "x-extensions": [
+    "J'y suis déjà... on tourne en rond là.",
+    "Extensions ? Je suis déjà dedans, merci."
+  ],
+  "x-themes": [
+    "Un thème ? Ce n'est vraiment pas le moment de décorer.",
+    "Les thèmes, c'est pour les jours de calme."
+  ],
+  "x-plugins": [
+    "Des plugins ? Je viens pour une extension, pas pour une prise électrique.",
+    "Un plugin ? Je n'ai pas de prise sous la main."
+  ],
+  "x-dictionnaires": [
+    "Un dictionnaire ? Je connais déjà tous les mots dont j'ai besoin.",
+    "Un dictionnaire ? J'ai déjà assez de vocabulaire pour aujourd'hui."
+  ],
+  "x-langues": [
+    "Je parle déjà assez bien français, merci.",
+    "Une autre langue ? Un seul combat à la fois."
+  ],
+  "x-parametres": [
+    "Les paramètres du navigateur ? Un autre jour.",
+    "Encore des paramètres ? Laissez-moi souffler."
+  ],
+  "x-assistance": [
+    "De l'aide ? Je me débrouille très bien tout seul... en théorie.",
+    "L'assistance attendra, j'ai presque trouvé."
+  ],
+  // Contenu de la page
+  "x-roue": [
+    "Une roue dentée... mais pas de mécanique ici.",
+    "Cette roue tourne dans le vide."
+  ],
+  "x-interrupteur": [
+    "Je ne désactive rien, ça pourrait tout casser.",
+    "Cet interrupteur me fait un peu peur, je n'y touche pas."
+  ],
+  "x-points": [
+    "Trois petits points... et trois petites inquiétudes.",
+    "Ces trois points cachent sûrement trois mauvaises surprises."
+  ],
+  "x-fermer-bandeau": [
+    "Fermer ça ? Je préfère garder un œil dessus.",
+    "Je laisse le bandeau, on ne sait jamais."
+  ],
+  "x-savoir-plus": [
+    "En savoir plus ? Plus tard, j'ai une extension à ajouter.",
+    "Plus d'infos ? Après l'extension, promis."
+  ],
+  "x-ajouter-reco": [
+    "Pas celle-ci : je cherche une extension précise.",
+    "Celle-ci n'est pas la bonne, je cherche une extension précise."
+  ],
+
   // ----- Fenêtre « Téléchargements » (étape 6) : les 4 autres fichiers -----
   "dl-facture": [
     "Ma facture du garage ? Pas maintenant, ça fait mal au portefeuille.",
@@ -347,10 +459,14 @@ const VUES = {
   email: { onglet: "SuiteSécurité – E-mail de récupération", adresse: "https://suite-securite.example/compte/recuperation/email" },
   phrase: { onglet: "SuiteSécurité – Phrase de récupération", adresse: "https://suite-securite.example/compte/recuperation/phrase" },
   // Même page « Récupération » que la vue « recuperation », mais dans son état « complet » (étape 7)
-  "recuperation-complet": { onglet: "SuiteSécurité – Récupération", adresse: "https://suite-securite.example/compte/recuperation" }
+  // (utilisée par les étapes 7 ET 9)
+  "recuperation-complet": { onglet: "SuiteSécurité – Récupération", adresse: "https://suite-securite.example/compte/recuperation" },
+  // Page « Gestion des extensions » (étape 8)
+  extensions: { onglet: "Gestion des extensions", adresse: "navigateur://extensions" }
 };
 
-// Vue actuellement affichée (« accueil », « compte », « recuperation », « verification », « email », « phrase » ou « recuperation-complet »)
+// Vue actuellement affichée (« accueil », « compte », « recuperation », « verification », « email », « phrase »,
+// « recuperation-complet » ou « extensions »)
 let vueCourante = "accueil";
 
 // Numéro de l'étape actuelle (0 tant qu'aucune étape n'est affichée)
@@ -411,7 +527,8 @@ function marquerMenu(nom) {
 // Étape 1 = bureau + vue « accueil » ; étape 2 = le MÊME bureau + vue « compte » ;
 // étape 3 = le MÊME bureau + vue « recuperation » ; étape 4 = le MÊME bureau + vue « verification » ;
 // étape 5 = le MÊME bureau + vue « email » ; étape 6 = le MÊME bureau + vue « phrase » ; étape 7 = le MÊME bureau + page « Récupération » complète ;
-// étape 8 = carte provisoire. Chaque <section> déclare ses étapes dans data-etapes.
+// étape 8 = le MÊME bureau + vue « extensions » ; étape 9 = le MÊME bureau + la MÊME vue que l'étape 7 (retour à la page d'origine) ;
+// étape 10 = carte provisoire. Chaque <section> déclare ses étapes dans data-etapes.
 function allerEtape(numero) {
   const etapePrecedente = etapeCourante;        // d'où l'on vient (0 au démarrage)
   etapeCourante = numero;
@@ -425,7 +542,10 @@ function allerEtape(numero) {
   if (numero === 4) afficherVue("verification");
   if (numero === 5) afficherVue("email");
   if (numero === 6) afficherVue("phrase");
-  if (numero === 7) afficherVue("recuperation-complet");
+  if (numero === 7 || numero === 9) afficherVue("recuperation-complet");   // l'étape 9 réutilise la vue de l'étape 7
+  if (numero === 8) afficherVue("extensions");
+  // Arrivée à l'étape 9 depuis l'étape 8 : l'extension est ajoutée (un accès direct par #9 ne change rien)
+  if (numero === 9 && etapePrecedente === 8) extensionAjoutee = true;
   cacherMessage();
   // Bulle, calepin et champ du mot de passe : actifs seulement à l'étape 4 (remis à zéro à chaque arrivée)
   preparerEtape4(numero === 4);
@@ -433,20 +553,22 @@ function allerEtape(numero) {
   if (numero === 5) preparerEtape5();
   // Fenêtre Téléchargements, bulles et bouton de téléchargement : actifs seulement à l'étape 6 (remis à zéro à chaque arrivée)
   preparerEtape6(numero === 6);
-  // Page « Récupération » complète : adresse à jour et défilement en haut à chaque arrivée sur l'étape 7
-  if (numero === 7) preparerEtape7();
-  // Étape 7 : bulle de dialogue (après le trait barré) et bouton puzzle actif ; ailleurs : bulle et panneau fermés
-  preparerExtensions(numero === 7);
+  // Page « Récupération » complète : adresse à jour et défilement en haut à chaque arrivée sur l'étape 7 (ou 9)
+  if (numero === 7 || numero === 9) preparerEtape7();
+  // Étape 7 : bulle de dialogue (après le trait barré) et bouton puzzle actif ; ailleurs (dont l'étape 9) : bulle et panneau fermés
+  preparerExtensions(numero);
+  // Page « Gestion des extensions » : tout remis à zéro à chaque arrivée sur l'étape 8
+  preparerEtape8(numero === 8);
   // Notes du calepin : barrées ou non selon l'étape (petit calepin ET calepin ouvert)
   majNotes(numero, etapePrecedente);
-  // On garde l'étape dans l'adresse (#2 à #8), pour qu'un rechargement reste sur la même étape
+  // On garde l'étape dans l'adresse (#2 à #10), pour qu'un rechargement reste sur la même étape
   history.replaceState(null, "", numero === 1 ? location.pathname + location.search : "#" + numero);
 }
 
-// Lit l'adresse : « autotest.html#2 » à « #8 » ouvre cette étape, sinon étape 1
+// Lit l'adresse : « autotest.html#2 » à « #10 » ouvre cette étape, sinon étape 1
 function etapeDepuisAdresse() {
   const numero = Number(location.hash.slice(1));
-  return [2, 3, 4, 5, 6, 7, 8].includes(numero) ? numero : 1;
+  return [2, 3, 4, 5, 6, 7, 8, 9, 10].includes(numero) ? numero : 1;
 }
 
 // ---------- LES MESSAGES HUMORISTIQUES ----------
@@ -731,9 +853,9 @@ document.getElementById("c-recherche").addEventListener("focus", function (e) {
 
 // Un clic ailleurs sur la page fait disparaître la bulle
 // (sauf si on clique sur un élément à message : lui il affiche un nouveau message)
-// (« Récupération » du menu est aussi un élément à message quand on est déjà sur sa page)
+// (« Récupération » du menu est aussi un élément à message quand on est déjà sur sa page ; la loupe de l'étape 8 aussi)
 document.addEventListener("click", function (e) {
-  if (!e.target.closest(ELEMENTS_A_MESSAGE + ", #btn-recuperation, #btn-terminer")) cacherMessage();
+  if (!e.target.closest(ELEMENTS_A_MESSAGE + ", #btn-recuperation, #btn-terminer, #x-loupe, #btn-gerer-ext")) cacherMessage();
 });
 
 // « Paramètres » (page des services) : le seul bouton sans message, il ouvre l'étape 2
@@ -758,9 +880,9 @@ document.getElementById("btn-methodes").addEventListener("click", function () {
   allerEtape(4);
 });
 
-// « Retour au bureau » (étape 8) : retour à l'étape 7 (la page « Récupération » complète)
+// « Retour au bureau » (étape 10) : retour à l'étape 9 (la page « Récupération » complète, sans bulle)
 document.getElementById("btn-retour-bureau").addEventListener("click", function () {
-  allerEtape(7);
+  allerEtape(9);
 });
 
 // =====================================================
@@ -808,7 +930,7 @@ remplirNotes(document.getElementById("carnet-notes"));
 
 // Barre ou non chaque note d'après le numéro d'étape actuel (pas d'après un historique) :
 // barrée si étape >= barreDepuisEtape. Le trait ne s'anime que lorsqu'on ARRIVE sur cette étape
-// depuis l'étape juste avant (6 → 7) ; ailleurs (#7 direct, 7 → 8, retour de 8 à 7) il est déjà là, sans animation.
+// depuis l'étape juste avant (6 → 7) ; ailleurs (#7 direct, 7 → 8 → 9, retour de 10 à 9) il est déjà là, sans animation.
 function majNotes(numero, etapePrecedente) {
   lignesNotes.forEach(function (element) {
     const depuis = element.note.barreDepuisEtape;
@@ -1144,6 +1266,7 @@ function preparerEtape6(actif) {
 // =====================================================
 // Dans la page elle-même, AUCUN élément ne mène à une autre étape : tout affiche un message humoristique.
 // La suite passe par le navigateur : icône puzzle (barre d'adresse) > « Gérer les extensions » > étape 8.
+// L'étape 9 réutilise exactement cette page (mêmes contenus et mêmes messages), sans la bulle et avec l'icône puzzle décorative.
 
 // Prépare l'étape 7 (appelée par allerEtape à chaque arrivée) :
 // l'adresse affichée suit le choix de l'étape 5, et la page remonte tout en haut.
@@ -1153,14 +1276,24 @@ function preparerEtape7() {
   document.querySelector('.c-contenu[data-sous="recuperation-complet"] .r-defile').scrollTop = 0;
 }
 
-// ---------- Bulle de dialogue, bouton puzzle « Extensions » et son panneau (étape 7) ----------
-const bulleExtension = document.getElementById("bulle-extension");   // bulle « Je dois ajouter l'extension… »
+// ---------- Bulle de dialogue, bouton puzzle « Extensions » et son panneau (étapes 7 et 9) ----------
+const bulleExtension = document.getElementById("bulle-extension");   // bulle « Je dois ajouter l'extension… » (étape 7)
 const boutonExt = document.getElementById("btn-extensions");         // bouton puzzle (barre d'adresse)
 const panneauExt = document.getElementById("ext-panneau");           // petit panneau déroulant
 const boutonGerer = document.getElementById("btn-gerer-ext");        // son entrée « Gérer les extensions »
+const ligneSS = document.getElementById("ext-ligne-ss");             // ligne « SuiteSécurité » (étape 9)
+const traitSS = document.getElementById("ext-trait-ss");             // fine ligne sous cette ligne
+const boutonOptions = document.getElementById("btn-options-ext");    // bouton « ⋯ » de la ligne
+const menuExt = document.getElementById("ext-menu");                 // son petit menu
+const boutonEpingler = document.getElementById("btn-epingler");      // entrée « Épingler / Détacher »
+const texteEpingler = document.getElementById("epingler-texte");     // le texte de cette entrée
+const logoEpingle = document.getElementById("btn-logo-epingle");     // logo dans la barre d'outils
 let minuteurBulleExt = null;                                         // minuteur : apparition de la bulle
 
-// Le bouton puzzle est-il actif ? (seulement à l'étape 7)
+// SuiteSécurité est-elle épinglée à la barre d'outils ? (remis à false quand on revient avant l'étape 9)
+let extensionEpinglee = false;
+
+// Le bouton puzzle est-il actif ? (aux étapes 7 et 9 seulement)
 function extensionsActives() {
   return boutonExt.getAttribute("aria-disabled") !== "true";
 }
@@ -1169,17 +1302,42 @@ function panneauExtOuvert() {
   return !panneauExt.hidden;
 }
 
+function menuExtOuvert() {
+  return !menuExt.hidden;
+}
+
 function ouvrirPanneauExt() {
   panneauExt.hidden = false;
   boutonExt.setAttribute("aria-expanded", "true");
-  boutonGerer.focus();                           // le clavier arrive sur l'entrée du panneau
+  // Le clavier arrive sur la première entrée du panneau (à l'étape 9 : le bouton « ⋯ »)
+  (ligneSS.hidden ? boutonGerer : boutonOptions).focus();
 }
 
-// Ferme le panneau ; redonnerFocus = true → le focus retourne sur le bouton puzzle
+// Ferme le panneau (et son petit menu) ; redonnerFocus = true → le focus retourne sur le bouton puzzle
 function fermerPanneauExt(redonnerFocus) {
+  fermerMenuExt(false);
   panneauExt.hidden = true;
   boutonExt.setAttribute("aria-expanded", "false");
   if (redonnerFocus) boutonExt.focus();
+}
+
+// Petit menu « ⋯ » : ouvre / ferme ; redonnerFocus = true → le focus retourne sur le bouton « ⋯ »
+function ouvrirMenuExt() {
+  menuExt.hidden = false;
+  boutonOptions.setAttribute("aria-expanded", "true");
+  boutonEpingler.focus();
+}
+function fermerMenuExt(redonnerFocus) {
+  menuExt.hidden = true;
+  boutonOptions.setAttribute("aria-expanded", "false");
+  if (redonnerFocus) boutonOptions.focus();
+}
+
+// Épingle ou détache : montre / cache le logo dans la barre d'outils et change le texte de l'entrée du menu
+function majEpingle(epinglee) {
+  extensionEpinglee = epinglee;
+  logoEpingle.hidden = !epinglee;
+  texteEpingler.textContent = epinglee ? "Détacher de la barre d'outils" : "Épingler à la barre d'outils";
 }
 
 // Clic sur le bouton puzzle : ouvre le panneau, ou le ferme au 2e clic (rien aux autres étapes)
@@ -1189,38 +1347,180 @@ boutonExt.addEventListener("click", function () {
   else ouvrirPanneauExt();
 });
 
-// « Gérer les extensions » : ferme le panneau puis passe à l'étape 8 (page provisoire)
+// « Gérer les extensions » : à l'étape 7, ferme le panneau puis passe à l'étape 8 (page « Gestion des extensions ») ;
+// à l'étape 9 (ou après), il n'y a pas de destination : on ferme le panneau et on affiche un message humoristique
 boutonGerer.addEventListener("click", function () {
   fermerPanneauExt(true);
-  allerEtape(8);
+  if (etapeCourante >= 9) afficherMessage(choisirMessage("gerer-ext-ici"));
+  else allerEtape(8);
 });
 
-// Clic ailleurs : le panneau se ferme (le focus reste là où l'on a cliqué)
+// Bouton « ⋯ » : ouvre le petit menu, ou le ferme au 2e clic
+boutonOptions.addEventListener("click", function () {
+  if (menuExtOuvert()) fermerMenuExt(true);
+  else ouvrirMenuExt();
+});
+
+// « Épingler à la barre d'outils » / « Détacher de la barre d'outils » : le petit menu se ferme, le panneau reste ouvert
+boutonEpingler.addEventListener("click", function () {
+  majEpingle(!extensionEpinglee);
+  fermerMenuExt(true);
+});
+
+// TODO : action du clic sur le logo épinglé (à définir)
+// Pour l'instant, le logo épinglé affiche seulement un message humoristique (attribut data-msg dans le HTML).
+
+// Clic ailleurs : le petit menu se ferme ; hors du panneau, le panneau se ferme aussi (le focus reste là où l'on a cliqué)
 document.addEventListener("click", function (e) {
+  if (menuExtOuvert() && !e.target.closest("#ext-menu, #btn-options-ext")) fermerMenuExt(false);
   if (panneauExtOuvert() && !e.target.closest(".ext-zone")) fermerPanneauExt(false);
 });
 
-// Touche Échap : le panneau se ferme et le focus revient sur le bouton puzzle
+// Touche Échap : ferme d'abord le petit menu, puis (2e appui) le panneau ; le focus revient sur le bouton d'où l'on vient
 document.addEventListener("keydown", function (e) {
-  if (e.key === "Escape" && panneauExtOuvert()) fermerPanneauExt(true);
+  if (e.key !== "Escape") return;
+  if (menuExtOuvert()) fermerMenuExt(true);
+  else if (panneauExtOuvert()) fermerPanneauExt(true);
 });
 
-// Prépare l'étape 7 pour la bulle et le bouton puzzle (appelée par allerEtape à chaque changement d'étape) :
-// actif = true → bouton actif, panneau fermé, la bulle apparaît 0,8 s plus tard (le trait du calepin a fini de se dessiner)
-// actif = false → bouton décoratif, panneau et bulle cachés
-function preparerExtensions(actif) {
+// Prépare le bouton puzzle, son panneau et la bulle (appelée par allerEtape à chaque changement d'étape).
+// Le panneau et le petit menu sont toujours fermés au départ.
+//  - étapes 7 et 9 : bouton actif ; étape 7 : la bulle apparaît 0,8 s plus tard (le trait du calepin a fini de se dessiner)
+//  - autres étapes : bouton décoratif, bulle cachée
+//  - à partir de l'étape 9 : le panneau contient la ligne « SuiteSécurité » (déduit du numéro d'étape, pas de extensionAjoutee)
+//  - avant l'étape 9 : le logo n'est plus épinglé
+function preparerExtensions(numero) {
+  const actif = numero === 7 || numero === 9;
   clearTimeout(minuteurBulleExt);
   bulleExtension.hidden = true;
   fermerPanneauExt(false);
   boutonExt.setAttribute("aria-disabled", String(!actif));
-  if (actif) {
-    boutonExt.removeAttribute("tabindex");
+  ligneSS.hidden = numero < 9;
+  traitSS.hidden = numero < 9;
+  if (numero < 9) majEpingle(false);
+  if (actif) boutonExt.removeAttribute("tabindex");
+  else boutonExt.tabIndex = -1;                  // décoratif : pas de focus clavier
+  if (numero === 7) {
     // Comme à l'étape 4, la colonne de gauche réserve de la place en haut pour la bulle (utile sur les écrans courts)
     document.getElementById("etape-bureau").classList.add("avec-bulle");
     minuteurBulleExt = setTimeout(function () { bulleExtension.hidden = false; }, 800);
-  } else {
-    boutonExt.tabIndex = -1;                     // décoratif : pas de focus clavier
   }
+}
+
+// =====================================================
+//  ÉTAPE 8 : PAGE « GESTION DES EXTENSIONS »
+// =====================================================
+const champExt = document.getElementById("x-champ");         // le champ de recherche (un vrai <input>)
+const effacerExt = document.getElementById("x-effacer");     // le bouton ✕ du champ
+const loupeExt = document.getElementById("x-loupe");         // la loupe
+const resultatsExt = document.getElementById("x-resultats"); // la liste de résultats
+let minuteurAjout = null;                                    // minuteur : anneau de chargement, puis passage à l'étape 9
+
+// Écrit le texte dans le champ (c'est toujours le début de TEXTE_RECHERCHE, jamais les vraies touches)
+// et ouvre ou ferme la liste : ouverte dès qu'il y a au moins une lettre, fermée quand le champ est vide.
+function majChampExt(texte) {
+  champExt.value = texte;
+  effacerExt.hidden = texte === "";
+  resultatsExt.hidden = texte === "";
+}
+
+function fermerResultatsExt() {
+  resultatsExt.hidden = true;
+}
+
+// Les touches du champ
+champExt.addEventListener("keydown", function (e) {
+  // Ctrl, Alt ou Meta : raccourcis du navigateur, on ne bloque pas (sauf AltGr, qui sert à écrire des symboles)
+  const altGr = e.getModifierState && e.getModifierState("AltGraph");
+  if ((e.ctrlKey || e.altKey || e.metaKey) && !altGr) return;
+  if (e.key === "Backspace") {                  // Retour arrière : efface la dernière lettre
+    e.preventDefault();
+    majChampExt(champExt.value.slice(0, -1));
+  } else if (e.key === "Enter") {               // Entrée : comme un clic sur la loupe
+    e.preventDefault();
+    lancerRechercheExt();
+  } else if (e.key.length === 1) {              // touche imprimable (lettre, chiffre, symbole, espace)
+    e.preventDefault();                         // la vraie touche n'écrit rien
+    const nb = champExt.value.length;
+    if (nb < TEXTE_RECHERCHE.length) majChampExt(TEXTE_RECHERCHE.slice(0, nb + 1));   // la lettre suivante
+  }
+  // Tab, Échap, flèches, touches de fonction... : on ne fait rien de spécial ici
+});
+
+// Rien d'autre ne peut écrire dans le champ : ni collage, ni glisser-déposer, ni couper, ni saisie au clavier de téléphone
+["beforeinput", "paste", "drop", "cut"].forEach(function (nom) {
+  champExt.addEventListener(nom, function (e) { e.preventDefault(); });
+});
+
+// Le bouton ✕ vide le champ (et ferme la liste)
+effacerExt.addEventListener("click", function () {
+  majChampExt("");
+  champExt.focus();
+});
+
+// Entrée ou loupe : s'il y a du texte, la liste reste affichée ; sinon, un message humoristique
+function lancerRechercheExt() {
+  if (champExt.value === "") afficherMessage(choisirMessage("x-recherche-vide"));
+  else resultatsExt.hidden = false;
+}
+loupeExt.addEventListener("click", lancerRechercheExt);
+
+// Échap : ferme la liste de résultats (le texte reste dans le champ)
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" && !resultatsExt.hidden) fermerResultatsExt();
+});
+
+// Fabrique la liste de résultats d'après RESULTATS_EXTENSIONS (tous les boutons dans leur état initial)
+function construireResultatsExt() {
+  resultatsExt.textContent = "";
+  RESULTATS_EXTENSIONS.forEach(function (res) {
+    const ligne = creer("div", "x-res-ligne");
+    const icone = creer("span", "x-ico " + res.couleur);
+    icone.setAttribute("aria-hidden", "true");
+    icone.appendChild(creerSvg('<svg viewBox="0 0 24 24"><path d="M8 4h8v4h4v8h-4v4H8v-4H4V8h4z"/></svg>'));
+    ligne.appendChild(icone);
+    const texte = creer("div", "x-res-texte");
+    texte.appendChild(creer("strong", "", res.nom));
+    texte.appendChild(creer("span", "x-gris", res.description));
+    ligne.appendChild(texte);
+    const bouton = creer("button", "x-bouton-ajout");
+    bouton.type = "button";
+    bouton.appendChild(creer("span", "x-ajout-texte", "Ajouter au navigateur"));
+    bouton.appendChild(creer("span", "x-anneau"));            // anneau de chargement (caché tant qu'on ne charge pas)
+    if (res.bonne) {
+      bouton.addEventListener("click", function () { ajouterExtension(bouton); });
+    } else {
+      // data-msg : le clic « ailleurs » ne cache pas ce message (voir plus haut) ; le message est affiché ici
+      bouton.dataset.msg = res.msg;
+      bouton.addEventListener("click", function () { afficherMessage(choisirMessage(res.msg)); });
+    }
+    ligne.appendChild(bouton);
+    resultatsExt.appendChild(ligne);
+  });
+}
+
+// Bouton de la bonne extension : anneau 0,7 s → coche et « Ajoutée » → 0,5 s plus tard, étape 9
+function ajouterExtension(bouton) {
+  bouton.disabled = true;
+  bouton.setAttribute("aria-busy", "true");
+  bouton.dataset.etat = "charge";
+  minuteurAjout = setTimeout(function () {
+    bouton.removeAttribute("aria-busy");
+    bouton.dataset.etat = "ajoute";
+    bouton.querySelector(".x-ajout-texte").innerHTML = SVG_COCHE + "Ajoutée";
+    minuteurAjout = setTimeout(function () { allerEtape(9); }, 500);
+  }, 700);
+}
+
+// Remet la page de l'étape 8 à zéro (appelée par allerEtape à chaque changement d'étape) :
+// champ vide, liste fermée et reconstruite, boutons à l'état initial, défilement en haut.
+// actif = true (on est à l'étape 8) → le champ prend le focus.
+function preparerEtape8(actif) {
+  clearTimeout(minuteurAjout);
+  majChampExt("");
+  construireResultatsExt();
+  document.getElementById("x-defile").scrollTop = 0;
+  if (actif) champExt.focus({ preventScroll: true });
 }
 
 // Si on modifie le # dans l'adresse, on change d'étape

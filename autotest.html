@@ -17,7 +17,7 @@
   <!--  ÉTAPE 1 : le faux bureau d'ordinateur                -->
   <!-- ===================================================== -->
   <!-- Ce bureau sert pour les étapes 1 à 7 : seule la page web dans le navigateur change -->
-  <section class="etape bureau" id="etape-bureau" data-etapes="1 2 3 4 5 6 7">
+  <section class="etape bureau" id="etape-bureau" data-etapes="1 2 3 4 5 6 7 8 9">
 
     <!-- Petit lien discret pour revenir à l'accueil (en haut à gauche) -->
     <a class="lien-accueil-bureau" href="accueil.html">← Accueil</a>
@@ -75,7 +75,21 @@
 
         <!-- Bouton « Extensions » (pièce de puzzle), à droite de la barre d'adresse.
              Visible à toutes les étapes, mais actif seulement à l'étape 7 (voir preparerExtensions dans autotest.js) -->
+        <!-- Logo SuiteSécurité : dessiné UNE seule fois ici, puis réutilisé avec <use> (panneau + barre d'outils) -->
+        <svg class="ext-defs" width="0" height="0" aria-hidden="true" focusable="false">
+          <symbol id="logo-suitesecurite" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="12" fill="#6d4aff"/>
+            <path d="M12 4.8l5.8 2.1v4.6c0 3.5-2.4 6-5.8 7.2-3.4-1.2-5.8-3.7-5.8-7.2V6.9z" fill="#fff"/>
+            <circle cx="12" cy="10.9" r="1.6" fill="#6d4aff"/>
+            <path d="M11.2 11.8h1.6l.5 3.2h-2.6z" fill="#6d4aff"/>
+          </symbol>
+        </svg>
+
         <div class="ext-zone">
+          <!-- Logo épinglé dans la barre d'outils (caché tant que l'extension n'est pas épinglée), à gauche du bouton puzzle -->
+          <button type="button" class="ext-bouton ext-epingle" id="btn-logo-epingle" aria-label="SuiteSécurité" title="SuiteSécurité" data-msg="logo-epingle" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#logo-suitesecurite"/></svg>
+          </button>
           <button type="button" class="ext-bouton" id="btn-extensions" aria-label="Extensions"
                   aria-haspopup="true" aria-expanded="false" aria-controls="ext-panneau" aria-disabled="true" tabindex="-1">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg>
@@ -83,6 +97,27 @@
           <!-- Petit panneau (étape 7) : un titre, un trait fin et une seule entrée -->
           <div class="ext-panneau" id="ext-panneau" role="group" aria-label="Extensions" hidden>
             <p class="ext-titre">Extensions</p>
+
+            <!-- Ligne « SuiteSécurité » : seulement à partir de l'étape 9 (voir preparerExtensions dans autotest.js) -->
+            <div class="ext-ligne-ss" id="ext-ligne-ss" hidden>
+              <svg class="ext-logo" viewBox="0 0 24 24" aria-hidden="true"><use href="#logo-suitesecurite"/></svg>
+              <div class="ext-ss-texte">
+                <strong>SuiteSécurité</strong>
+                <span>Peut toujours lire et modifier les données de ce site</span>
+              </div>
+              <button type="button" class="ext-options" id="btn-options-ext" aria-label="Options de l'extension SuiteSécurité"
+                      aria-haspopup="menu" aria-expanded="false" aria-controls="ext-menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
+              </button>
+              <!-- Petit menu du bouton « ⋯ » : une seule entrée (épingler / détacher) -->
+              <div class="ext-menu" id="ext-menu" role="menu" hidden>
+                <button type="button" class="ext-entree" id="btn-epingler" role="menuitem">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3zM12 14v7"/></svg>
+                  <span id="epingler-texte">Épingler à la barre d'outils</span>
+                </button>
+              </div>
+            </div>
+            <hr class="ext-trait" id="ext-trait-ss" hidden>
             <button type="button" class="ext-entree" id="btn-gerer-ext">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke-dasharray="2.6 2.6" stroke-width="3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2.5"/></svg>
               Gérer les extensions
@@ -182,7 +217,7 @@
 
         </div> <!-- fin de la vue « accueil » -->
 
-        <!-- ===== VUES 2, 3 et 7 : pages « Compte » (étape 2) et « Récupération » (étapes 3 et 7) ===== -->
+        <!-- ===== VUES 2, 3 et 7 : pages « Compte » (étape 2) et « Récupération » (étapes 3, 7 et 9) ===== -->
         <!-- Le menu de gauche et la barre du haut sont COMMUNS aux deux pages :
              seul le contenu (.c-contenu) change, selon data-sous. -->
         <!-- Tout est placé en % (position) et en cqw (tailles) pour garder les proportions -->
@@ -667,6 +702,161 @@
           </div>
         </div>
 
+        <!-- ===== VUE 8 : « Gestion des extensions » (étape 8), page plein écran sans nom de marque réel ===== -->
+        <!-- Le menu de gauche reste fixe ; la zone de contenu (.x-defile) défile. Tailles en cqw (comme .vue-compte). -->
+        <div class="vue vue-compte vue-ext" data-vues="extensions" hidden>
+          <div class="x-page">
+
+            <!-- Dessins réutilisés (étoiles, roue dentée) : invisibles, on les appelle avec <use> -->
+            <svg class="x-defs" width="0" height="0" aria-hidden="true" focusable="false">
+              <defs>
+                <linearGradient id="x-demi">
+                  <stop offset="50%" stop-color="#f5a623"/>
+                  <stop offset="50%" stop-color="#d9d6e6"/>
+                </linearGradient>
+                <symbol id="x-etoile" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="#f5a623" stroke="none"/></symbol>
+                <symbol id="x-etoile-demi" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="url(#x-demi)" stroke="none"/></symbol>
+                <symbol id="x-roue" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.6" stroke-dasharray="2.4 2.4" stroke-width="3.4"/><circle cx="12" cy="12" r="5.6"/><circle cx="12" cy="12" r="2.3"/></symbol>
+              </defs>
+            </svg>
+
+            <!-- Menu de gauche (fixe) -->
+            <nav class="x-menu" aria-label="Modules complémentaires">
+              <span class="x-logo" aria-hidden="true"></span>
+              <p class="x-menu-titre">Modules<br>complémentaires</p>
+
+              <button type="button" class="x-entree" data-msg="x-recommandations">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Recommandations</span>
+              </button>
+              <!-- Entrée sélectionnée : pastille violette -->
+              <button type="button" class="x-entree actif" data-msg="x-extensions" aria-current="page">
+                <svg class="x-plein" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg><span>Extensions</span>
+              </button>
+              <button type="button" class="x-entree" data-msg="x-themes">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 1.5-2s0-2 1.5-2h2a3 3 0 0 0 3-3c0-5-4-11-8-11z"/><circle cx="8" cy="11" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="11" r="1"/></svg><span>Thèmes</span>
+              </button>
+              <button type="button" class="x-entree" data-msg="x-plugins">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></svg><span>Plugins</span>
+              </button>
+              <button type="button" class="x-entree" data-msg="x-dictionnaires">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg><span>Dictionnaires</span>
+              </button>
+              <button type="button" class="x-entree" data-msg="x-langues">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span>Langues</span>
+              </button>
+
+              <hr class="x-trait">
+
+              <button type="button" class="x-entree" data-msg="x-parametres">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#x-roue"/></svg><span>Paramètres du navigateur</span>
+              </button>
+              <button type="button" class="x-entree" data-msg="x-assistance">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17v.01"/></svg><span>Assistance des modules</span>
+              </button>
+            </nav>
+
+            <!-- Zone de contenu : c'est elle qui défile -->
+            <div class="x-defile" id="x-defile">
+              <div class="x-colonne">
+
+                <!-- Ligne du haut : texte + champ de recherche + loupe -->
+                <div class="x-recherche-ligne">
+                  <span class="x-decouvrir">Découvrez davantage de modules</span>
+                  <div class="x-champ-zone">
+                    <div class="x-champ">
+                      <input type="text" id="x-champ" class="x-input" autocomplete="off" spellcheck="false"
+                             aria-label="Découvrez davantage de modules" aria-controls="x-resultats">
+                      <button type="button" class="x-effacer" id="x-effacer" aria-label="Effacer la recherche" hidden>✕</button>
+                    </div>
+                    <!-- Liste de résultats : remplie par le JS (tableau RESULTATS_EXTENSIONS) -->
+                    <div class="x-resultats" id="x-resultats" role="group" aria-label="Résultats de la recherche" hidden></div>
+                  </div>
+                  <button type="button" class="x-loupe" id="x-loupe" aria-label="Rechercher">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+                  </button>
+                </div>
+
+                <!-- Titre + bouton roue dentée -->
+                <div class="x-titre-ligne">
+                  <h1 class="x-titre">Gestion de vos extensions</h1>
+                  <button type="button" class="x-roue" data-msg="x-roue" aria-label="Paramètres des extensions">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#x-roue"/></svg>
+                  </button>
+                </div>
+
+                <!-- Extensions activées (2 cartes) -->
+                <h2 class="x-section">Activées</h2>
+                <article class="x-carte">
+                  <span class="x-ico x-bleu" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7l5 5-5 5M13 7l5 5-5 5"/></svg></span>
+                  <div class="x-carte-texte">
+                    <strong class="x-nom">AutoFlux</strong>
+                    <p class="x-gris">Complément d'activation de l'automatisation web. Cette extension répond à AutoFlux...</p>
+                  </div>
+                  <div class="x-carte-actions">
+                    <button type="button" class="x-inter" role="switch" aria-checked="true" aria-label="Désactiver AutoFlux" data-msg="x-interrupteur"></button>
+                    <button type="button" class="x-points" aria-label="Plus d'options pour AutoFlux" data-msg="x-points">⋯</button>
+                  </div>
+                </article>
+                <article class="x-carte">
+                  <span class="x-ico x-rouge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 2.6v5.6c0 4.4-3 7.7-7 9.3-4-1.6-7-4.9-7-9.3V5.6z"/></svg></span>
+                  <div class="x-carte-texte">
+                    <strong class="x-nom">Bloc-Pub Léger
+                      <!-- petite médaille orange (décorative) -->
+                      <svg class="x-medaille" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2l4 7 4-7" fill="#f5a623" stroke="none"/><circle cx="12" cy="15" r="6.5" fill="#f5a623" stroke="none"/><circle cx="12" cy="15" r="3" fill="#fff3d6" stroke="none"/></svg>
+                    </strong>
+                    <p class="x-gris">Un bloqueur de nuisances efficace, qui ménagera votre processeur et votre mémoire vive.</p>
+                  </div>
+                  <div class="x-carte-actions">
+                    <button type="button" class="x-inter" role="switch" aria-checked="true" aria-label="Désactiver Bloc-Pub Léger" data-msg="x-interrupteur"></button>
+                    <button type="button" class="x-points" aria-label="Plus d'options pour Bloc-Pub Léger" data-msg="x-points">⋯</button>
+                  </div>
+                </article>
+
+                <!-- Extensions recommandées -->
+                <h2 class="x-section">Extensions recommandées</h2>
+                <div class="x-bandeau">
+                  <span class="x-bandeau-bande" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></span>
+                  <p>Certaines de ces recommandations sont personnalisées. Cette sélection se fonde sur d'autres extensions que vous avez installées, les préférences de votre profil et les statistiques d'utilisation.
+                    <button type="button" class="x-lien" data-msg="x-savoir-plus">En savoir plus</button></p>
+                  <button type="button" class="x-fermer" aria-label="Fermer le bandeau" data-msg="x-fermer-bandeau">✕</button>
+                </div>
+
+                <article class="x-carte x-reco">
+                  <span class="x-ico x-violet" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span>
+                  <div class="x-carte-texte">
+                    <strong class="x-nom">Panneau de contrôle vidéo</strong>
+                    <p class="x-auteur">par <span>Auteur Exemple</span></p>
+                    <p class="x-gris">Recherche optimisée, publicités ignorées et une foule d'autres options de personnalisation pour les vidéos en ligne.</p>
+                    <p class="x-etoiles"><span class="x-etoiles-dessin" aria-label="4,5 étoiles sur 5" role="img"><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile-demi"/></svg></span><span class="x-gris">Utilisateurs : 86 286</span></p>
+                  </div>
+                  <button type="button" class="x-bouton-ajout" data-msg="x-ajouter-reco">Ajouter au navigateur</button>
+                </article>
+                <article class="x-carte x-reco">
+                  <span class="x-ico x-vert" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 2.6v5.6c0 4.4-3 7.7-7 9.3-4-1.6-7-4.9-7-9.3V5.6z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg></span>
+                  <div class="x-carte-texte">
+                    <strong class="x-nom">Garde Navigation</strong>
+                    <p class="x-auteur">par <span>Auteur Exemple</span></p>
+                    <p class="x-gris">Protège votre navigation contre les sites malveillants et les pisteurs.</p>
+                    <p class="x-etoiles"><span class="x-etoiles-dessin" aria-label="4,5 étoiles sur 5" role="img"><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile-demi"/></svg></span><span class="x-gris">Utilisateurs : 52 140</span></p>
+                  </div>
+                  <button type="button" class="x-bouton-ajout" data-msg="x-ajouter-reco">Ajouter au navigateur</button>
+                </article>
+                <article class="x-carte x-reco">
+                  <span class="x-ico x-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span>
+                  <div class="x-carte-texte">
+                    <strong class="x-nom">Traducteur Express</strong>
+                    <p class="x-auteur">par <span>Auteur Exemple</span></p>
+                    <p class="x-gris">Traduit une page entière en un clic, directement dans votre navigateur.</p>
+                    <p class="x-etoiles"><span class="x-etoiles-dessin" aria-label="4,5 étoiles sur 5" role="img"><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile"/></svg><svg viewBox="0 0 24 24"><use href="#x-etoile-demi"/></svg></span><span class="x-gris">Utilisateurs : 31 508</span></p>
+                  </div>
+                  <button type="button" class="x-bouton-ajout" data-msg="x-ajouter-reco">Ajouter au navigateur</button>
+                </article>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Bulle de message humoristique (centrée dans la zone de page) -->
 
         <div class="toast-zone">
@@ -738,9 +928,9 @@
   </section>
 
   <!-- ===================================================== -->
-  <!--  ÉTAPE 8 : provisoire                                 -->
+  <!--  ÉTAPE 10 : provisoire (pas encore atteignable)       -->
   <!-- ===================================================== -->
-  <section class="etape etape-carte" id="etape-8" data-etapes="8" hidden>
+  <section class="etape etape-carte" id="etape-10" data-etapes="10" hidden>
     <div class="carte accueil">
       <h1>Auto-test</h1>
       <p>Suite de l'auto-test : en construction.</p>
