@@ -16,6 +16,7 @@
 //    liste de résultats ; « Ajouter au navigateur » sur « SuiteSécurité » mène à l'étape 9
 //  - étape 9 : MÊME page que l'étape 7, mais sans bulle et avec l'icône puzzle décorative (retour à la page d'origine)
 //  - étape 10 : page provisoire (pas encore atteignable)
+//  - iPhone : l'icône « Youvidéo » ouvre un iPhone agrandi (page de l'appli) au-dessus de tout ; clic en dehors ou Échap pour fermer
 //  - icône puzzle (étapes 7 et 9) : panneau ; à l'étape 9, ligne « SuiteSécurité » avec menu « ⋯ » pour épingler le logo à la barre d'outils
 //  - la page « Récupération » (étapes 3 et 7) est générée depuis ETATS_RECUPERATION : un objet de données par état
 // =====================================================
@@ -532,6 +533,7 @@ function marquerMenu(nom) {
 function allerEtape(numero) {
   const etapePrecedente = etapeCourante;        // d'où l'on vient (0 au démarrage)
   etapeCourante = numero;
+  fermerTel(false);                             // l'iPhone agrandi (appli Youvidéo) se ferme à chaque changement d'étape
   etapes.forEach(function (section) {
     const siennes = section.dataset.etapes.split(" ");
     section.hidden = !siennes.includes(String(numero));
@@ -1522,6 +1524,81 @@ function preparerEtape8(actif) {
   document.getElementById("x-defile").scrollTop = 0;
   if (actif) champExt.focus({ preventScroll: true });
 }
+
+// =====================================================
+//  IPHONE : APPLI « Youvidéo » (superposition au-dessus de tout)
+// =====================================================
+// Un clic sur l'icône « Youvidéo » du petit iPhone ouvre un iPhone agrandi avec la page de l'appli.
+// Ouvrir ou fermer ne change PAS l'étape (seul allerEtape ferme la superposition).
+const CHEMIN_GIF = "images/rickroll-roll.gif";                      // le GIF de la vidéo (placé dans images/)
+const telFond = document.getElementById("tel-fond");                // fond assombri
+const telGrand = document.getElementById("tel-grand");              // l'iPhone agrandi
+const telLecteur = document.getElementById("yv-lecteur");           // le lecteur vidéo 16/9
+const telRepli = document.getElementById("yv-repli");               // message affiché si le GIF manque
+const boutonYouvideo = document.getElementById("btn-youvideo");     // l'icône dans le petit iPhone
+let focusAvantTel = null;                                           // élément qui avait le focus avant l'ouverture
+let focusAvantSouris = null;                                        // idem, noté juste avant le clic de souris
+
+// Au clic de souris, le bouton prend le focus : on note donc l'élément ACTIF dès l'appui (mousedown),
+// avant ce changement de focus (au clavier, c'est le bouton lui-même qui a le focus)
+boutonYouvideo.addEventListener("mousedown", function () {
+  focusAvantSouris = document.activeElement;
+});
+
+// Ouvre la superposition. L'image est créée à chaque ouverture : le GIF repart du début.
+function ouvrirTel() {
+  focusAvantTel = focusAvantSouris || document.activeElement;
+  focusAvantSouris = null;
+  telRepli.hidden = true;
+  const image = document.createElement("img");
+  image.src = CHEMIN_GIF;
+  image.alt = "Vidéo en lecture";
+  image.addEventListener("error", function () {   // fichier introuvable : message de repli à la place
+    image.remove();
+    telRepli.hidden = false;
+  });
+  telLecteur.insertBefore(image, telLecteur.firstChild);
+  telFond.hidden = false;
+  telGrand.focus();                               // le focus quitte les champs : les touches ne les remplissent plus
+}
+
+// Ferme la superposition (et supprime l'image) ; redonnerFocus = true → le focus retourne où il était
+function fermerTel(redonnerFocus) {
+  if (telFond.hidden) return;
+  telFond.hidden = true;
+  telLecteur.querySelectorAll("img").forEach(function (image) { image.remove(); });
+  telRepli.hidden = true;
+  const cible = focusAvantTel;
+  focusAvantTel = null;
+  if (redonnerFocus && cible && cible !== document.body && document.contains(cible)) cible.focus();
+}
+
+// Les clics sur l'icône et sur la superposition ne réveillent pas les autres gestionnaires de clic de la page
+// (rien n'est remis à zéro : un panneau ouvert reste ouvert, par exemple)
+boutonYouvideo.addEventListener("click", function (e) {
+  e.stopPropagation();
+  ouvrirTel();
+});
+// Clic sur le fond assombri (donc EN DEHORS de l'iPhone) : fermeture. Un clic dans l'iPhone ne ferme rien.
+telFond.addEventListener("click", function (e) {
+  e.stopPropagation();
+  if (e.target === telFond) fermerTel(true);
+});
+
+// Touches pendant que la superposition est ouverte. « true » = écoute en premier (phase de capture) :
+// Échap ferme AVANT les autres gestionnaires d'Échap (calepin, panneau, liste de résultats),
+// et Tab ne peut pas aller sur la page derrière.
+document.addEventListener("keydown", function (e) {
+  if (telFond.hidden) return;
+  if (e.key === "Escape") {
+    e.preventDefault();
+    e.stopPropagation();
+    fermerTel(true);
+  } else if (e.key === "Tab") {
+    e.preventDefault();
+    telGrand.focus();
+  }
+}, true);
 
 // Si on modifie le # dans l'adresse, on change d'étape
 window.addEventListener("hashchange", function () {
